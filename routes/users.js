@@ -8,9 +8,9 @@ router.get('/', function(req, res, next) {
 });
 
 // route pour afficher les infos de l'utilisateur dans la page profile
-router.get('/:username', async (req, res) => {
+router.get('/:token', async (req, res) => {
   try {
-      const user = await User.findOne({ username: req.params.username })
+      const user = await User.findOne({ token: req.params.token })
           // récupère les scénario associés au username via la clé étrangère "scenario"
           // .populate('scenarios', 'name')
           // Sélection des champs nécessaires dont les infos doivent être remontés
@@ -25,12 +25,6 @@ router.get('/:username', async (req, res) => {
       res.json({ message: 'Erreur', details: error.message });
   }
 });
-
-
-
-
-
-
 
 
 
