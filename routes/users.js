@@ -4,6 +4,7 @@ const User = require('../models/users');
 const { checkBody } = require('../modules/checkBody');
 const uid2 = require('uid2');
 const bcrypt = require('bcrypt');
+import { v2 as cloudinary } from 'cloudinary';
 
 // /* GET users listing. */
 router.get('/', function(req, res, next) {
@@ -82,6 +83,25 @@ router.get('/:token', async (req, res) => {
       res.json({ message: 'Erreur', details: error.message });
   }
 });
+
+
+// PAGE PROFILE : route pour modifier le username et l'image de l'avatar via le lien en BDD qui fait référence à l'image hébergée sur cloudinary
+router.put('/updateProfil', async (req, res) => {
+  try {
+    const user = await User.findOne({ token : req.body.token });
+    if (req.body.token) {
+      user.username = req.body.username;
+      user.avatar = req.body.avatar;
+    }
+    // Enregistrement des modifications
+    await user.save();
+
+    // Réponse avec les nouvelles données de l'utilisateur
+    res.json({ message: 'Profil mis à jour', user });
+  } catch (error) { 
+    res.json({ message: 'Erreur', details: error.message });
+  }
+
 
 
 
