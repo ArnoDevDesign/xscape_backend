@@ -17,17 +17,17 @@ router.post("/signup", (req, res) => {
     res.json({ result: false, error: "Missing or empty fields" });
     return;
   }
-  User.findOne({email: req.body.email}).then((data) => {
+  User.findOne({ email: req.body.email }).then((data) => {
     if (data) {
       res.json({ result: false, error: "User already exists" });
     } else {
       const newUser = new User({
-        username: req.body.username,
+        username: null,
         email: req.body.email,
         password: bcrypt.hashSync(req.body.password, 10),
         token: uid2(32),
         totalPoints: 0,
-        avatar: req.body.avatar,
+        avatar: null,
         scenarios: [],
       });
       newUser.save().then((data) => {
@@ -35,7 +35,7 @@ router.post("/signup", (req, res) => {
       });
     }
   })
- }) ;
+});
 
 router.post("/signin", (req, res) => {
   if (!checkBody(req.body, ["email", "password"])) {
@@ -80,26 +80,35 @@ router.put("/updateProfil", async (req, res) => {
     if (!token) {
       return res.json({ message: "Token manquant" });
     }
-    // Création objet de modification
-    const update = {};
-    if (username) {
-      update.username = username;
-    }
-    if (avatar) {
-      update.avatar = avatar;
-    }
-    // Recherche l'utilisateur avec le token
-    const actionUpdate = await User.updateOne({ token }, update);
-    console.log(ops);
 
-    if (actionUpdate.modifiedCount === 0) {
-      res.json({ message: "Utilisateur non trouvé / Non modifié" });
-    } else {
-      res.json({ message: "Profil mis à jour" });
+    //vérifie si le username est déjà utilisé
+    if (username) {
+      return User.findOne({ username }).then((data) => {
+        if (data) {
+          return res.json({ result: false, error: "Username already exists" });
+        }
+      })}
+      // Création objet de modification
+      const update = {};
+      // Vérifie si le username et l'avatar sont fournis
+      if (username) {
+        update.username = username;
+      }
+      if (avatar) {
+        update.avatar = avatar;
+      }
+      // Recherche l'utilisateur avec le token
+      const actionUpdate = await User.updateOne({ token }, update);
+      console.log(actionUpdate);
+
+      if (actionUpdate.modifiedCount === 0) {
+        res.json({ message: "Utilisateur non trouvé / Non modifié" });
+      } else {
+        res.json({ message: "Profil mis à jour" });
+      }
     }
-  } catch (error) {
+  catch (error) {
     res.json({ message: "Erreur", details: error.message });
-  }
-});
+  }});
 
 module.exports = router;
