@@ -5,7 +5,7 @@ const scenarioSchema = mongoose.Schema({
         latitude: Number,
         longitude: Number
     },
-    titre: String,
+    name: String,
     texteNotification: String,
     description: String,
     resumeDescription: String,
