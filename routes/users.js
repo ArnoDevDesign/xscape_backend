@@ -1,17 +1,19 @@
 var express = require("express");
 var router = express.Router();
 const User = require("../models/users");
+const Session = require("../models/sessions");
 const { checkBody } = require("../modules/checkBody");
 const uid2 = require("uid2");
 const bcrypt = require("bcrypt");
 const cloudinary = require("cloudinary").v2;
 // import { v2 as cloudinary } from 'cloudinary';
 
-// /* GET users listing. */
+// ROUTE GET users listing
 router.get("/", function (req, res, next) {
   res.send("respond with a resource");
 });
 
+// ROUTE SIGNUP : route pour créer un nouvel utilisateur
 router.post("/signup", (req, res) => {
   if (!checkBody(req.body, ["email", "password"])) {
     res.json({ result: false, error: "Missing or empty fields" });
@@ -37,6 +39,7 @@ router.post("/signup", (req, res) => {
   })
 });
 
+//ROUTE SIGNIN : route pour connecter un utilisateur
 router.post("/signin", (req, res) => {
   if (!checkBody(req.body, ["email", "password"])) {
     res.json({ result: false, error: "Missing or empty fields" });
@@ -72,7 +75,7 @@ router.get("/:token", (req, res) => {
     });
 });
 
-// PAGE PROFILE : route pour modifier le username et l'image de l'avatar via le lien en BDD qui fait référence à l'image hébergée sur cloudinary
+// ROUTE PROFILE : route pour modifier le username et l'image de l'avatar via le lien en BDD qui fait référence à l'image hébergée sur cloudinary
 router.put("/updateProfil", async (req, res) => {
   try {
     const { token, username, avatar } = req.body;
