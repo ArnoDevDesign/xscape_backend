@@ -4,7 +4,7 @@ const User = require('../models/users');
 const { checkBody } = require('../modules/checkBody');
 const uid2 = require('uid2');
 const bcrypt = require('bcrypt');
-import { v2 as cloudinary } from 'cloudinary';
+// import { v2 as cloudinary } from 'cloudinary';
 
 // /* GET users listing. */
 router.get('/', function (req, res, next) {
@@ -67,19 +67,19 @@ router.post('/signin', (req, res) => {
 // PAGE PROFILE : route pour afficher les infos de l'utilisateur
 router.get('/:token', async (req, res) => {
   try {
-      const user = await User.findOne({ token: req.params.token })
-          // récupère les scénario associés au username via la clé étrangère "scenario"
-          // .populate('scenarios', 'name')
-          // Sélection des champs nécessaires dont les infos doivent être remontés
-          .select('username email totalPoints scenarios avatar'); 
-      // vérifie si un utilisateur existe
-      if (!user) {
-          return res.json({ message: 'Utilisateur non trouvé' });
-      }
+    const user = await User.findOne({ token: req.params.token })
+      // récupère les scénario associés au username via la clé étrangère "scenario"
+      // .populate('scenarios', 'name')
+      // Sélection des champs nécessaires dont les infos doivent être remontés
+      .select('username email totalPoints scenarios avatar');
+    // vérifie si un utilisateur existe
+    if (!user) {
+      return res.json({ message: 'Utilisateur non trouvé' });
+    }
 
-      res.json(user);
+    res.json(user);
   } catch (error) {
-      res.json({ message: 'Erreur', details: error.message });
+    res.json({ message: 'Erreur', details: error.message });
   }
 });
 
@@ -87,8 +87,10 @@ router.get('/:token', async (req, res) => {
 // PAGE PROFILE : route pour modifier le username et l'image de l'avatar via le lien en BDD qui fait référence à l'image hébergée sur cloudinary
 router.put('/updateProfil', async (req, res) => {
   try {
-    const user = await User.findOne({ token : req.body.token });
-    if (req.body.token) {
+    const user = await User.findOne({ token: token });
+    if (token) {
+      console.log(token)
+      user.token = req.body.token;
       user.username = req.body.username;
       user.avatar = req.body.avatar;
     }
@@ -97,12 +99,9 @@ router.put('/updateProfil', async (req, res) => {
 
     // Réponse avec les nouvelles données de l'utilisateur
     res.json({ message: 'Profil mis à jour', user });
-  } catch (error) { 
+  } catch (error) {
     res.json({ message: 'Erreur', details: error.message });
   }
-
-
-
-
+})
 
 module.exports = router;
