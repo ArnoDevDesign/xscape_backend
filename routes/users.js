@@ -1,17 +1,19 @@
 var express = require("express");
 var router = express.Router();
 const User = require("../models/users");
+const Session = require("../models/sessions");
 const { checkBody } = require("../modules/checkBody");
 const uid2 = require("uid2");
 const bcrypt = require("bcrypt");
 const cloudinary = require("cloudinary").v2;
 // import { v2 as cloudinary } from 'cloudinary';
 
-// /* GET users listing. */
+// ROUTE GET users listing
 router.get("/", function (req, res, next) {
   res.send("respond with a resource");
 });
 
+// ROUTE SIGNUP : route pour créer un nouvel utilisateur
 router.post("/signup", (req, res) => {
   if (!checkBody(req.body, ["email", "password"])) {
     res.json({ result: false, error: "Missing or empty fields" });
@@ -37,6 +39,7 @@ router.post("/signup", (req, res) => {
   })
 });
 
+//ROUTE SIGNIN : route pour connecter un utilisateur
 router.post("/signin", (req, res) => {
   if (!checkBody(req.body, ["email", "password"])) {
     res.json({ result: false, error: "Missing or empty fields" });
@@ -53,26 +56,46 @@ router.post("/signin", (req, res) => {
   });
 });
 
-// PAGE PROFILE : route pour afficher les infos de l'utilisateur
+// ROUTE PROFILE : route pour afficher les infos de l'utilisateur
 router.get("/:token", async (req, res) => {
   try {
     const user = await User.findOne({ token: req.params.token })
-      // récupère les scénario associés au username via la clé étrangère "scenario"
-      // .populate('scenarios', 'name')
+      // récupère les scénarios joué et le temps de jeu du joueur associés au username via la clé étrangère "sessions"
+      // .populate('sessions', 'name')
       // Sélection des champs nécessaires dont les infos doivent être remontés
       .select("username email totalPoints scenarios avatar");
     // vérifie si un utilisateur existe
     if (!user) {
       return res.json({ message: "Utilisateur non trouvé" });
     }
-
     res.json(user);
   } catch (error) {
     res.json({ message: "Erreur", details: error.message });
   }
 });
 
-// PAGE PROFILE : route pour modifier le username et l'image de l'avatar via le lien en BDD qui fait référence à l'image hébergée sur cloudinary
+// ROUTE SESSION : route pour afficher les sessions de l'utilisateur : scénarios joués et temps de jeu
+router.get("/:token", (req, res) => {
+  User.findOne({ token: req.params.token })
+    .populate("scenarios") // Récupère les scénarios associés à l'utilisateur
+    .then((user) => {
+      if (!user) {
+        return res.json({ message: "Utilisateur non trouvé" });
+      }
+      res.json({
+        username: user.username,
+        email: user.email,
+        totalPoints: user.totalPoints,
+        avatar: user.avatar,
+        scenarios: user.scenarios // Contient directement les scénarios joués
+      });
+    })
+    .catch((error) => {
+      res.json({ message: "Erreur", details: error.message });
+    });
+});
+
+// ROUTE PROFILE : route pour modifier le username et l'image de l'avatar via le lien en BDD qui fait référence à l'image hébergée sur cloudinary
 router.put("/updateProfil", async (req, res) => {
   try {
     const { token, username, avatar } = req.body;
@@ -80,7 +103,6 @@ router.put("/updateProfil", async (req, res) => {
     if (!token) {
       return res.json({ message: "Token manquant" });
     }
-
     //vérifie si le username est déjà utilisé
     if (username) {
       return User.findOne({ username }).then((data) => {
