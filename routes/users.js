@@ -56,28 +56,10 @@ router.post("/signin", (req, res) => {
   });
 });
 
-// ROUTE PROFILE : route pour afficher les infos de l'utilisateur
-router.get("/:token", async (req, res) => {
-  try {
-    const user = await User.findOne({ token: req.params.token })
-      // récupère les scénarios joué et le temps de jeu du joueur associés au username via la clé étrangère "sessions"
-      // .populate('sessions', 'name')
-      // Sélection des champs nécessaires dont les infos doivent être remontés
-      .select("username email totalPoints scenarios avatar");
-    // vérifie si un utilisateur existe
-    if (!user) {
-      return res.json({ message: "Utilisateur non trouvé" });
-    }
-    res.json(user);
-  } catch (error) {
-    res.json({ message: "Erreur", details: error.message });
-  }
-});
-
-// ROUTE SESSION : route pour afficher les sessions de l'utilisateur : scénarios joués et temps de jeu
+// // ROUTE PROFILE : route pour afficher les infos de l'utilisateur
 router.get("/:token", (req, res) => {
   User.findOne({ token: req.params.token })
-    .populate("scenarios") // Récupère les scénarios associés à l'utilisateur
+    // .populate("scenarios") // Récupère les scénarios associés à l'utilisateur
     .then((user) => {
       if (!user) {
         return res.json({ message: "Utilisateur non trouvé" });
@@ -87,7 +69,7 @@ router.get("/:token", (req, res) => {
         email: user.email,
         totalPoints: user.totalPoints,
         avatar: user.avatar,
-        scenarios: user.scenarios // Contient directement les scénarios joués
+        // scenarios: user.scenarios // Contient directement les scénarios joués
       });
     })
     .catch((error) => {
@@ -132,5 +114,8 @@ router.put("/updateProfil", async (req, res) => {
   catch (error) {
     res.json({ message: "Erreur", details: error.message });
   }});
+
+  // ROUTE SESSION : route pour afficher les sessions de l'utilisateur : scénarios joués et temps de jeu
+
 
 module.exports = router;
