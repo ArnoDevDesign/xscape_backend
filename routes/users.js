@@ -75,6 +75,14 @@ router.get("/:token", (req, res) => {
     });
 });
 
+
+
+
+
+
+
+
+
 // ROUTE PROFILE : route pour modifier le username et l'image de l'avatar via le lien en BDD qui fait référence à l'image hébergée sur cloudinary
 router.put("/updateProfil", async (req, res) => {
   try {
@@ -100,6 +108,16 @@ router.put("/updateProfil", async (req, res) => {
     if (avatar) {
       update.avatar = avatar;
     }
+
+
+
+
+
+
+
+
+
+
     // Recherche l'utilisateur avec le token
     const actionUpdate = await User.updateOne({ token }, update);
     console.log(actionUpdate);
