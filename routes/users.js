@@ -44,9 +44,9 @@ router.post("/signin", (req, res) => {
   }
 
   User.findOne({ email: req.body.email }).then((data) => {
+    console.log(data);
     if (data && bcrypt.compareSync(req.body.password, data.password)) {
-      res.json({ result: true, token: data.token });
-      console.log(data);
+      res.json({ result: true, token: data.token, username: data.username, avatar: data.avatar });
     } else {
       res.json({ result: false, error: "User not found or wrong password" });
     }
@@ -54,22 +54,22 @@ router.post("/signin", (req, res) => {
 });
 
 // PAGE PROFILE : route pour afficher les infos de l'utilisateur
-router.get("/:token", async (req, res) => {
-  try {
-    const user = await User.findOne({ token: req.params.token })
-      // récupère les scénario associés au username via la clé étrangère "scenario"
-      // .populate('scenarios', 'name')
-      // Sélection des champs nécessaires dont les infos doivent être remontés
-      .select("username email totalPoints scenarios avatar");
-    // vérifie si un utilisateur existe
-    if (!user) {
-      return res.json({ message: "Utilisateur non trouvé" });
-    }
-
-    res.json(user);
-  } catch (error) {
-    res.json({ message: "Erreur", details: error.message });
-  }
+router.get("/:token", (req, res) => {
+  User.findOne({ token: req.params.token })
+    // .populate("scenarios") // Récupère les scénarios associés à l'utilisateur
+    .then((user) => {
+      if (!user) {
+        return res.json({ message: "Utilisateur non trouvé" });
+      }
+      res.json({
+        email: user.email,
+        totalPoints: user.totalPoints,
+        // scenarios: user.scenarios // Contient directement les scénarios joués
+      });
+    })
+    .catch((error) => {
+      res.json({ message: "Erreur", details: error.message });
+    });
 });
 
 // PAGE PROFILE : route pour modifier le username et l'image de l'avatar via le lien en BDD qui fait référence à l'image hébergée sur cloudinary
@@ -81,19 +81,18 @@ router.put("/updateProfil", async (req, res) => {
       return res.json({ message: "Token manquant" });
     }
 
-    //vérifie si le username est déjà utilisé
-    if (username) {
-      return User.findOne({ username }).then((data) => {
-        if (data) {
-          return res.json({ result: false, error: "Username already exists" });
-        }
-      })
-    }
     // Création objet de modification
     const update = {};
+
     // Vérifie si le username et l'avatar sont fournis
     if (username) {
-      update.username = username;
+      const user = await User.findOne({ username });
+
+      if (user && user.token !== token) {
+        return res.json({ result: false, error: "Username already exists" });
+      } else {
+        update.username = username;
+      }
     }
     if (avatar) {
       update.avatar = avatar;
@@ -103,13 +102,13 @@ router.put("/updateProfil", async (req, res) => {
     console.log(actionUpdate);
 
     if (actionUpdate.modifiedCount === 0) {
-      res.json({ message: "Utilisateur non trouvé / Non modifié" });
+      res.json({ result: true, message: "Utilisateur non trouvé / Non modifié" });
     } else {
-      res.json({ message: "Profil mis à jour" });
+      res.json({ result: true, message: "Profil mis à jour" });
     }
   }
   catch (error) {
-    res.json({ message: "Erreur", details: error.message });
+    res.json({ result: false, message: "Erreur", details: error.message });
   }
 });
 
