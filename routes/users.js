@@ -87,49 +87,40 @@ router.get("/:token", (req, res) => {
 router.put("/updateProfil", async (req, res) => {
   try {
     const { token, username, avatar } = req.body;
-    // Vérifie que le token est bien fourni
+
     if (!token) {
-      return res.json({ message: "Token manquant" });
+      return res.json({ result: false, error: "Token manquant" });
     }
 
-    // Création objet de modification
-    const update = {};
+    // Recherche de l'utilisateur avec son token
+    const user = await User.findOne({ token });
+    if (!user) {
+      return res.json({ result: false, error: "Utilisateur non trouvé" });
+    }
 
-    // Vérifie si le username et l'avatar sont fournis
+    // Vérifie si un autre utilisateur a déjà ce pseudo
     if (username) {
-      const user = await User.findOne({ username });
-
-      if (user && user.token !== token) {
-        return res.json({ result: false, error: "Username already exists" });
-      } else {
-        update.username = username;
+      const existingUser = await User.findOne({ username });
+      if (existingUser && existingUser.token !== token) {
+        return res.json({ result: false, error: "Ce pseudo est déjà pris" });
       }
     }
-    if (avatar) {
-      update.avatar = avatar;
-    }
 
+    // Création de l'objet de mise à jour
+    const update = {};
+    if (username) update.username = username;
+    if (avatar) update.avatar = avatar;
 
-
-
-
-
-
-
-
-
-    // Recherche l'utilisateur avec le token
-    const actionUpdate = await User.updateOne({ token }, update);
-    console.log(actionUpdate);
+    // Mise à jour de l'utilisateur
+    const actionUpdate = User.updateOne({ token }, update);
 
     if (actionUpdate.modifiedCount === 0) {
-      res.json({ result: true, message: "Utilisateur non trouvé / Non modifié" });
+      res.json({ result: false, message: "Aucune modification apportée" });
     } else {
       res.json({ result: true, message: "Profil mis à jour" });
     }
-  }
-  catch (error) {
-    res.json({ result: false, message: "Erreur", details: error.message });
+  } catch (error) {
+    res.json({ result: false, error: "Erreur interne", details: error.message });
   }
 });
 
