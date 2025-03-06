@@ -10,13 +10,12 @@ router.get("/", function (req, res, next) {
 
 //ROUTE GET scenarios listing :
 router.get("/test", (req, res) => {
-    Scenario.find().then(data => {
-      res.json(data);
+  Scenario.find().then(data => {
+    res.json(data);
   })
 });
 
-
-  // ROUTE  : route pour créer un nouveau scénario
+// ROUTE  : route pour créer un nouveau scénario
 // router.post("/create", (req, res) => {
 //     if (!checkBody(req.body, ["title", "description", "author", "difficulty", "duration", "epreuves"])) {
 //       res.json({ result: false, error: "Missing or empty fields" });
@@ -53,19 +52,19 @@ router.get("/test", (req, res) => {
 //   });
 
 
-    // geolocalisation: {
-    //     latitude: Number,
-    //     longitude: Number
-    // },
-    // name: String,
-    // texteNotification: String,
-    // description: String,
-    // resumeDescription: String,
-    // theme: String,
-    // duree: [Number], // [heures, minutes, secondes]
-    // nbDeLike: Number,
-    // // notesJoueurs: Number,
-    // // noteMoyenne: Number,
-    // epreuves: [{ type: mongoose.Schema.Types.ObjectId, ref: "Epreuve" }], // Épreuves du scénario
+// geolocalisation: {
+//     latitude: Number,
+//     longitude: Number
+// },
+// name: String,
+// texteNotification: String,
+// description: String,
+// resumeDescription: String,
+// theme: String,
+// duree: [Number], // [heures, minutes, secondes]
+// nbDeLike: Number,
+// // notesJoueurs: Number,
+// // noteMoyenne: Number,
+// epreuves: [{ type: mongoose.Schema.Types.ObjectId, ref: "Epreuve" }], // Épreuves du scénario
 
-    module.exports = router;
+module.exports = router;
