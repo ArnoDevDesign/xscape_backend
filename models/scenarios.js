@@ -14,7 +14,7 @@ const scenarioSchema = mongoose.Schema({
     theme: String,
     duree: Number,
     nbDeLike: Number,
-    difficulte: Number,
+    difficulte: String,
     // notesJoueurs: Number,
     // noteMoyenne: Number,
     epreuves: [{ type: mongoose.Schema.Types.ObjectId, ref: "Epreuve" }], // Épreuves du scénario
