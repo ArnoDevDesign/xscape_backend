@@ -60,31 +60,36 @@ router.post("/signin", (req, res) => {
 
 
 // PAGE PROFILE : route pour afficher les infos de l'utilisateur
-router.get("/:token", async (req, res) => {
-  try {
-    const user = await User.findOne({ token: req.params.token });
+router.get("/:token", (req, res) => {
+  User.findOne({ token: req.params.token })
+    .then((user) => {
+      if (!user) {
+        return res.json({ message: "Utilisateur non trouvé" });
+      }
 
-    if (!user) {
-      return res.json({ message: "Utilisateur non trouvé" });
-    }
+      // Récupérer toutes les sessions terminées de cet utilisateur
+      Session.find({ participant: user._id, status: "completed" })
+        .populate("scenario")
+        .then((completedSessions) => {
+          // Extraire uniquement les titres des scénarios terminés
+          const completedScenarios = completedSessions.map((data, index) => {
+            console.log(`Index: ${index} Scenario name : ${data.scenarios.name}`);
+            return data.scenarios.name;
+          });
 
-    // Récupérer toutes les sessions terminées de cet utilisateur
-    const completedSessions = await Session.find({ participant: user._id, status: "completed" })
-      .populate("scenario"); 
-
-    // Extraire uniquement les titres des scénarios terminés
-    const completedScenarios = completedSessions.map((data, index) => { 
-      // console.log(`Index: ${index} Scenario name : ${data.scenario.name}`);
-      return data.scenarios.name});
-
-    res.json({
-      email: user.email,
-      totalPoints: user.totalPoints,
-      scenarios: completedScenarios // Liste des titres des scénarios terminés
+          res.json({
+            email: user.email,
+            totalPoints: user.totalPoints,
+            scenarios: completedScenarios, // Liste des titres des scénarios terminés
+          });
+        })
+        .catch((error) => {
+          res.json({ message: "Erreur lors de la récupération des sessions", details: error.message });
+        });
+    })
+    .catch((error) => {
+      res.json({ message: "Erreur lors de la récupération de l'utilisateur", details: error.message });
     });
-  } catch (error) {
-    res.json({ message: "Erreur", details: error.message });
-  }
 });
 
 
@@ -106,8 +111,6 @@ router.put("/updateProfil", async (req, res) => {
 
     // Création objet de modification
     const update = {};
-
-    // Vérifie si le username et l'avatar sont fournis
     if (username) {
       const user = await User.findOne({ username });
 
