@@ -39,6 +39,7 @@ router.post("/signup", (req, res) => {
   })
 });
 
+
 //ROUTE SIGNIN : route pour connecter un utilisateur
 router.post("/signin", (req, res) => {
   if (!checkBody(req.body, ["email", "password"])) {
@@ -47,7 +48,7 @@ router.post("/signin", (req, res) => {
   }
 
   User.findOne({ email: req.body.email }).then((data) => {
-    console.log(data);
+    console.log("Route signin :", data);
     if (data && bcrypt.compareSync(req.body.password, data.password)) {
       res.json({ result: true, token: data.token, username: data.username, avatar: data.avatar });
     } else {
@@ -56,23 +57,34 @@ router.post("/signin", (req, res) => {
   });
 });
 
+
+
 // PAGE PROFILE : route pour afficher les infos de l'utilisateur
-router.get("/:token", (req, res) => {
-  User.findOne({ token: req.params.token })
-    // .populate("scenarios") // Récupère les scénarios associés à l'utilisateur
-    .then((user) => {
-      if (!user) {
-        return res.json({ message: "Utilisateur non trouvé" });
-      }
-      res.json({
-        email: user.email,
-        totalPoints: user.totalPoints,
-        // scenarios: user.scenarios // Contient directement les scénarios joués
-      });
-    })
-    .catch((error) => {
-      res.json({ message: "Erreur", details: error.message });
+router.get("/:token", async (req, res) => {
+  try {
+    const user = await User.findOne({ token: req.params.token });
+
+    if (!user) {
+      return res.json({ message: "Utilisateur non trouvé" });
+    }
+
+    // Récupérer toutes les sessions terminées de cet utilisateur
+    const completedSessions = await Session.find({ participant: user._id, status: "completed" })
+      .populate("scenario"); 
+
+    // Extraire uniquement les titres des scénarios terminés
+    const completedScenarios = completedSessions.map((data, index) => { 
+      // console.log(`Index: ${index} Scenario name : ${data.scenario.name}`);
+      return data.scenarios.name});
+
+    res.json({
+      email: user.email,
+      totalPoints: user.totalPoints,
+      scenarios: completedScenarios // Liste des titres des scénarios terminés
     });
+  } catch (error) {
+    res.json({ message: "Erreur", details: error.message });
+  }
 });
 
 
@@ -108,16 +120,6 @@ router.put("/updateProfil", async (req, res) => {
     if (avatar) {
       update.avatar = avatar;
     }
-
-
-
-
-
-
-
-
-
-
     // Recherche l'utilisateur avec le token
     const actionUpdate = await User.updateOne({ token }, update);
     console.log(actionUpdate);

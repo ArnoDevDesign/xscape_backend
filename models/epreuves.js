@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const epreuveSchema = mongoose.Schema({
     name: String,
-    difficulte: Number, 
+    difficulte: Number, //à connecter avec la difficulté du scénario
     points: Number, 
     etapeEpreuve: [{ type: mongoose.Schema.Types.ObjectId, ref: "EtapeEpreuve" }], // Étapes de l’épreuve
 });
