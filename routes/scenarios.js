@@ -18,15 +18,36 @@ router.get("/", (req, res) => {
 
 //ROUTE GET scenarios by name :
 router.get("/:name", (req, res) => {
-  if (!checkBody(req.params, ["name"])) {
-    res.json({ result: false, error: "Pas de scenario trouvée avec ce nom !" });
+  try {
+    if(!checkBody(req.params, ["name"])){
+    res.json({result: false, error: "Pas de scenario trouvée avec ce nom !"});
     return;
   }
-  Scenario.findOne({ name: req.params.name })
-    .then(data => {
-      res.json(data);
-      console.log(data);
-    })
+  Scenario.findOne({name: req.params.name})
+  .then(data =>{
+    res.json(data);
+    console.log(data);  
+  })
+} catch (error) {
+  console.log('route get name', error);
+  res.json({result: false, error: "Pas de scenario trouvée avec ce nom !"});
+}});
+
+//ROUTE GET if scenario exist and isSuccess is true :
+router.get("/isSuccess/:name", (req,res) => {
+   try {
+    if (!checkBody(req.params, ["name"])) {
+    res.json({result: false, error: "Pas de scenario trouvé avec ce nom !"});
+    return;
+   }
+   Scenario.findOne({name: req.params.name, isSuccess: true}) 
+   .then(data => {
+    res.json(data);
+    console.log(data);
+   });
+  } catch (error) {
+    console.log('route get isSuccess', error)
+  }
 });
 
 module.exports = router;
