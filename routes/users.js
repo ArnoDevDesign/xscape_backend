@@ -104,9 +104,9 @@ router.get("/:token", (req, res) => {
 router.put("/updateProfil", async (req, res) => {
   try {
     const { token, username, avatar } = req.body;
-    // Vérifie que le token est bien fourni
+
     if (!token) {
-      return res.json({ message: "Token manquant" });
+      return res.json({ result: false, error: "Token manquant" });
     }
 
     // Création objet de modification
@@ -128,13 +128,12 @@ router.put("/updateProfil", async (req, res) => {
     console.log(actionUpdate);
 
     if (actionUpdate.modifiedCount === 0) {
-      res.json({ result: true, message: "Utilisateur non trouvé / Non modifié" });
+      res.json({ result: false, message: "Aucune modification apportée" });
     } else {
       res.json({ result: true, message: "Profil mis à jour" });
     }
-  }
-  catch (error) {
-    res.json({ result: false, message: "Erreur", details: error.message });
+  } catch (error) {
+    res.json({ result: false, error: "Erreur interne", details: error.message });
   }
 });
 

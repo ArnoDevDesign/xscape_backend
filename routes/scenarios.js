@@ -10,9 +10,9 @@ router.get("/test", function (req, res, next) {
 
 //ROUTE GET scenarios listing :
 router.get("/", (req, res) => {
-    Scenario.find().then(data => {
-      res.json(data);
-      console.log(data.name);
+  Scenario.find().then(data => {
+    res.json(data);
+    console.log(data.name);
   })
 });
 
