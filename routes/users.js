@@ -39,6 +39,7 @@ router.post("/signup", (req, res) => {
   })
 });
 
+
 //ROUTE SIGNIN : route pour connecter un utilisateur
 router.post("/signin", (req, res) => {
   if (!checkBody(req.body, ["email", "password"])) {
@@ -47,7 +48,7 @@ router.post("/signin", (req, res) => {
   }
 
   User.findOne({ email: req.body.email }).then((data) => {
-    console.log(data);
+    console.log("Route signin :", data);
     if (data && bcrypt.compareSync(req.body.password, data.password)) {
       res.json({ result: true, token: data.token, username: data.username, avatar: data.avatar });
     } else {
@@ -56,22 +57,38 @@ router.post("/signin", (req, res) => {
   });
 });
 
+
+
 // PAGE PROFILE : route pour afficher les infos de l'utilisateur
 router.get("/:token", (req, res) => {
   User.findOne({ token: req.params.token })
-    // .populate("scenarios") // Récupère les scénarios associés à l'utilisateur
     .then((user) => {
       if (!user) {
         return res.json({ message: "Utilisateur non trouvé" });
       }
-      res.json({
-        email: user.email,
-        totalPoints: user.totalPoints,
-        // scenarios: user.scenarios // Contient directement les scénarios joués
-      });
+
+      // Récupérer toutes les sessions terminées de cet utilisateur
+      Session.find({ participant: user._id, status: "completed" })
+        .populate("scenario")
+        .then((completedSessions) => {
+          // Extraire uniquement les titres des scénarios terminés
+          const completedScenarios = completedSessions.map((data, index) => {
+            console.log(`Index: ${index} Scenario name : ${data.scenarios.name}`);
+            return data.scenarios.name;
+          });
+
+          res.json({
+            email: user.email,
+            totalPoints: user.totalPoints,
+            scenarios: completedScenarios, // Liste des titres des scénarios terminés
+          });
+        })
+        .catch((error) => {
+          res.json({ message: "Erreur lors de la récupération des sessions", details: error.message });
+        });
     })
     .catch((error) => {
-      res.json({ message: "Erreur", details: error.message });
+      res.json({ message: "Erreur lors de la récupération de l'utilisateur", details: error.message });
     });
 });
 
@@ -92,27 +109,23 @@ router.put("/updateProfil", async (req, res) => {
       return res.json({ result: false, error: "Token manquant" });
     }
 
-    // Recherche de l'utilisateur avec son token
-    const user = await User.findOne({ token });
-    if (!user) {
-      return res.json({ result: false, error: "Utilisateur non trouvé" });
-    }
-
-    // Vérifie si un autre utilisateur a déjà ce pseudo
+    // Création objet de modification
+    const update = {};
     if (username) {
-      const existingUser = await User.findOne({ username });
-      if (existingUser && existingUser.token !== token) {
-        return res.json({ result: false, error: "Ce pseudo est déjà pris" });
+      const user = await User.findOne({ username });
+
+      if (user && user.token !== token) {
+        return res.json({ result: false, error: "Username already exists" });
+      } else {
+        update.username = username;
       }
     }
-
-    // Création de l'objet de mise à jour
-    const update = {};
-    if (username) update.username = username;
-    if (avatar) update.avatar = avatar;
-
-    // Mise à jour de l'utilisateur
-    const actionUpdate = User.updateOne({ token }, update);
+    if (avatar) {
+      update.avatar = avatar;
+    }
+    // Recherche l'utilisateur avec le token
+    const actionUpdate = await User.updateOne({ token }, update);
+    console.log(actionUpdate);
 
     if (actionUpdate.modifiedCount === 0) {
       res.json({ result: false, message: "Aucune modification apportée" });
