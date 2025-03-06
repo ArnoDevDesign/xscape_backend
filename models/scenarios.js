@@ -6,9 +6,11 @@ const scenarioSchema = mongoose.Schema({
         longitude: Number
     },
     name: String,
-    texteNotification: String,
-    description: String,
-    resumeDescription: String,
+    notification: String,
+    infoScenario: String,
+    introScenario: String,
+    descriptionScenario: String,
+    conclusionScenario: String,
     theme: String,
     duree: [Number], // [heures, minutes, secondes]
     nbDeLike: Number,
