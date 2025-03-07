@@ -38,46 +38,96 @@ router.get("/:name", (req, res) => {
   }
 });
 
-//ROUTE GET etapesEpreuves by name :
-router.get("/etapes/:scenarioId/:participantId", async (req, res) => {
+//ROUTE GET all data session by scenario and name :
+router.get("/sessionAll/:scenarioId/:participantId", async (req, res) => {
   console.log("Params reçus :", req.params);
   try {
     const { scenarioId, participantId } = req.params;
 
-    // Trouver la session correspondante et les clés étrangères associées
+    // Données de la session correspondante et les clés étrangères associées
     const session = await Session.findOne({ scenario: scenarioId, participant: participantId })
-      .populate("currentEpreuve");
+      .populate({
+        path: "currentEpreuve",  // On peuple l'épreuve actuelle
+        populate: {              // On peuple les étapes de l'épreuve en même temps
+          path: "etapes",
+          model: "etapes",      // Assure-toi que c'est bien le bon modèle pour les étapes
+        },
+      });
 
     if (!session || !session.currentEpreuve) {
       return res.status(404).json({ result: false, error: "Session ou épreuve non trouvée" });
     }
 
-    // 📌 Récupérer l'épreuve AVEC les détails des étapes
-    const currentEpreuve = await Epreuve.findById(session.currentEpreuve._id)
-      .populate({
-        path: "etapes", // 🔥 On peuple le champ "etapes"
-        model: "etapes", // 📌 Assure-toi que c'est bien le bon nom du modèle
-      });
-
-    if (!currentEpreuve) {
-      return res.status(404).json({ result: false, error: "Épreuve non trouvée" });
-    }
-
-    console.log("Epreuve trouvée :", currentEpreuve);
-
-    // 📌 Retourner la session, l'épreuve et les étapes DÉTAILLÉES
+    console.log("Session et épreuve avec étapes trouvées :", session);
+    
+    // Retourner les données complètes de la session avec les données de l'épreuve et des étapes
     res.json({
-      session,         // ✅ Données complètes de la session
-      currentEpreuve,  // ✅ Données complètes de l'épreuve
-      etapes: currentEpreuve.etapes, // ✅ Détail des étapes
+      session,               // Données complètes de la session
+      currentEpreuve: session.currentEpreuve,  // Données complètes de l'épreuve
+      etapes: session.currentEpreuve.etapes,  // Données complètes des étapes
     });
+
   } catch (error) {
     console.log("Erreur dans la route GET /currentEpreuve", error);
     res.json({ result: false, error: "Erreur serveur !" });
   }
 });
 
+//ROUTE GET descriptionEpreuve by scenario and name :
+router.get("/descriptionEpreuve/:scenarioId/:participantId", async (req, res) => {
+  try {
+    const { scenarioId, participantId } = req.params;
+    // Données de la session correspondante et les clés étrangères associées
+    const session = await Session.findOne({ scenario: scenarioId, participant: participantId })
+      .populate({
+        path: "currentEpreuve",  
+        populate: {          
+          path: "etapes",
+          model: "etapes", 
+        },
+      });
 
+    if (!session || !session.currentEpreuve) {
+      return res.status(404).json({ result: false, error: "Session ou épreuve non trouvée" });
+    }
+    console.log("Session et épreuve avec étapes trouvées :", session);
+    // Retourner la donnée descriptionEpreuve de l'épreuve actuelle
+    res.json({
+      descriptionEpreuveData: session.currentEpreuve.descriptionEpreuve});
+
+  } catch (error) {
+    console.log("Erreur dans la route GET /currentEpreuve", error);
+    res.json({ result: false, error: "Erreur serveur !" });
+  }
+});
+
+//ROUTE GET Epreuve by scenario and name :
+router.get("/descriptionEpreuve/:scenarioId/:participantId", async (req, res) => {
+  try {
+    const { scenarioId, participantId } = req.params;
+    // Données de la session correspondante et les clés étrangères associées
+    const session = await Session.findOne({ scenario: scenarioId, participant: participantId })
+      .populate({
+        path: "currentEpreuve",  
+        populate: {          
+          path: "etapes",
+          model: "etapes", 
+        },
+      });
+
+    if (!session || !session.currentEpreuve) {
+      return res.status(404).json({ result: false, error: "Session ou épreuve non trouvée" });
+    }
+    console.log("Session et épreuve avec étapes trouvées :", session);
+    // Retourner la donnée descriptionEpreuve de l'épreuve actuelle
+    res.json({
+      descriptionEpreuveData: session.currentEpreuve.descriptionEpreuve});
+
+  } catch (error) {
+    console.log("Erreur dans la route GET /currentEpreuve", error);
+    res.json({ result: false, error: "Erreur serveur !" });
+  }
+});
 
 // //ROUTE GET if scenario exist and isSuccess is true :
 // router.get("/isSuccess/:name", (req,res) => {

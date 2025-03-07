@@ -3,7 +3,7 @@ afin de pouvoir afficher les markers sur la carte et récupérer les information
 Nous allons donc tester la route GET /scenario
 
 const request = require('supertest');
-const app = require('./app');
+const app = require('../app');
 const Scenario = require('../models/scenarios');
 
 it('GET /scenario', async () => {

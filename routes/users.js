@@ -33,7 +33,7 @@ router.post("/signup", (req, res) => {
         scenarios: [],
       });
       newUser.save().then((data) => {
-        res.json({ result: true, token: data.token });
+        res.json({ result: true, token: data.token, _id: data._id});
       });
     }
   })
@@ -50,7 +50,7 @@ router.post("/signin", (req, res) => {
   User.findOne({ email: req.body.email }).then((data) => {
     console.log("Route signin :", data);
     if (data && bcrypt.compareSync(req.body.password, data.password)) {
-      res.json({ result: true, token: data.token, username: data.username, avatar: data.avatar });
+      res.json({ result: true, token: data.token, username: data.username, avatar: data.avatar, _id: });
     } else {
       res.json({ result: false, error: "User not found or wrong password" });
     }
