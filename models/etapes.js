@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const etapeEpreuveSchema = mongoose.Schema({
+const etapeSchema = mongoose.Schema({
     name: String,
     text: String,
     type: {
@@ -13,6 +13,6 @@ const etapeEpreuveSchema = mongoose.Schema({
     expectedAnswer: String, // Réponse attendue
 });
 
-const EtapeEpreuve = mongoose.model('etapeEpreuves', etapeEpreuveSchema);
+const Etape = mongoose.model('etapes', etapeSchema);
 
-module.exports = EtapeEpreuve;
+module.exports = Etape;
