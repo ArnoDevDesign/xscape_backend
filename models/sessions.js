@@ -8,7 +8,7 @@ const sessionSchema = mongoose.Schema({
     },
     endDate: Date,
     scenario: { type: mongoose.Schema.Types.ObjectId, ref: "scenarios" }, // Scénario joué
-    validatedEpreuves: [String], // Épreuves validées
+    validatedEpreuves: [{ type: mongoose.Schema.Types.ObjectId, ref: "epreuves" }], // Épreuves validées
     currentEpreuve: { type: mongoose.Schema.Types.ObjectId, ref: "epreuves" }, // Épreuve en cours
     status: {
         type: String,
