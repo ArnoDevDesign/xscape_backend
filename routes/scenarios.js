@@ -59,7 +59,7 @@ router.get("/sessionAll/:scenarioId/:participantId", async (req, res) => {
     }
 
     console.log("Session et épreuve avec étapes trouvées :", session);
-    
+
     // Retourner les données complètes de la session avec les données de l'épreuve et des étapes
     res.json({
       session,               // Données complètes de la session
@@ -80,10 +80,10 @@ router.get("/descriptionEpreuve/:scenarioId/:participantId", async (req, res) =>
     // Données de la session correspondante et les clés étrangères associées
     const session = await Session.findOne({ scenario: scenarioId, participant: participantId })
       .populate({
-        path: "currentEpreuve",  
-        populate: {          
+        path: "currentEpreuve",
+        populate: {
           path: "etapes",
-          model: "etapes", 
+          model: "etapes",
         },
       });
 
@@ -93,7 +93,8 @@ router.get("/descriptionEpreuve/:scenarioId/:participantId", async (req, res) =>
     console.log("Session et épreuve avec étapes trouvées :", session);
     // Retourner la donnée descriptionEpreuve de l'épreuve actuelle
     res.json({
-      descriptionEpreuveData: session.currentEpreuve.descriptionEpreuve});
+      descriptionEpreuveData: session.currentEpreuve.descriptionEpreuve
+    });
 
   } catch (error) {
     console.log("Erreur dans la route GET /currentEpreuve", error);
@@ -108,10 +109,10 @@ router.get("/descriptionEpreuve/:scenarioId/:participantId", async (req, res) =>
     // Données de la session correspondante et les clés étrangères associées
     const session = await Session.findOne({ scenario: scenarioId, participant: participantId })
       .populate({
-        path: "currentEpreuve",  
-        populate: {          
+        path: "currentEpreuve",
+        populate: {
           path: "etapes",
-          model: "etapes", 
+          model: "etapes",
         },
       });
 
@@ -121,7 +122,8 @@ router.get("/descriptionEpreuve/:scenarioId/:participantId", async (req, res) =>
     console.log("Session et épreuve avec étapes trouvées :", session);
     // Retourner la donnée descriptionEpreuve de l'épreuve actuelle
     res.json({
-      descriptionEpreuveData: session.currentEpreuve.descriptionEpreuve});
+      descriptionEpreuveData: session.currentEpreuve.descriptionEpreuve
+    });
 
   } catch (error) {
     console.log("Erreur dans la route GET /currentEpreuve", error);
