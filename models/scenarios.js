@@ -17,7 +17,7 @@ const scenarioSchema = mongoose.Schema({
     difficulte: String,
     // notesJoueurs: Number,
     // noteMoyenne: Number,
-    // epreuves: [{ type: mongoose.Schema.Types.ObjectId, ref: "epreuves" }], // Épreuves du scénario
+    epreuves: [{ type: mongoose.Schema.Types.ObjectId, ref: "epreuves" }], // Épreuves du scénario
 });
 
 const Scenario = mongoose.model('scenarios', scenarioSchema);
