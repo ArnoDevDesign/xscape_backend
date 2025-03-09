@@ -1,0 +1,123 @@
+[
+    {
+      "name": "fréquence 1",
+      "text": "",
+      "type": {
+          "type": "question",
+          "enum": ["qr", "question", "puzzle"]},
+      "indice": "the fréquence is 88.9",
+      "indiceUsed": "false",
+      "link": "",
+      "expectedAnswer": "98.8"
+    },
+    {
+        "name": "fréquence 2",
+        "text": "",
+        "type": {
+            "type": "question",
+            "enum": ["qr", "question", "puzzle"] 
+        },
+        "indice": "tu t'es fait avoir ?!",
+        "indiceUsed": "false",
+        "link": "", 
+        "expectedAnswer": "94.6"
+      },
+      {
+        "name": "fréquence 3",
+        "text": "",
+        "type": {
+            "type": "question",
+            "enum": ["qr", "question", "puzzle"] 
+        },
+        "indice": "quelle énergie",
+        "indiceUsed": "false",
+        "link": "", 
+        "expectedAnswer": "100.3" 
+      },
+      {
+        "name": "QR Code 1",
+        "text": "",
+        "type": {
+            "type": "qr",
+            "enum": ["qr", "question", "puzzle"] 
+        },
+        "indice": "regardez la Lune !",
+        "indiceUsed": "false",
+        "link": "", 
+        "expectedAnswer": "qr code 1 scan" 
+      },
+      {
+        "name": "QR Code 2",
+        "text": "",
+        "type": {
+            "type": "qr",
+            "enum": ["qr", "question", "puzzle"] 
+        },
+        "indice": "regardez le soleil !",
+        "indiceUsed": "false",
+        "link": "", 
+        "expectedAnswer": "qr code 2 scan" 
+      },
+      {
+        "name": "QR Code 3",
+        "text": "",
+        "type": {
+            "type": "qr",
+            "enum": ["qr", "question", "puzzle"] 
+        },
+        "indice": "regardez vos pieds !",
+        "indiceUsed": "false",
+        "link": "", 
+        "expectedAnswer": "qr code 3 scan"
+      },
+      {
+        "name": "Boutton 1",
+        "text": "",
+        "type": {
+            "type": "puzzle",
+            "enum": ["qr", "question", "puzzle"] 
+        },
+        "indice": "Quel est le plis lourd, 1kg de plumes ou de plomb ? !",
+        "indiceUsed": "false",
+        "link": "", 
+        "expectedAnswer": "boutton1"
+      },
+      {
+        "name": "Boutton 2",
+        "text": "",
+        "type": {
+            "type": "puzzle",
+            "enum": ["qr", "question", "puzzle"] 
+        },
+        "indice": "On repart en arrière ?",
+        "indiceUsed": "false",
+        "link": "", 
+        "expectedAnswer": "boutton2"
+      },
+      {
+        "name": "Boutton 3",
+        "text": "",
+        "type": {
+            "type": "puzzle",
+            "enum": ["qr", "question", "puzzle"] 
+        },
+        "indice": "Attention de pas vous éloigner !",
+        "indiceUsed": "false",
+        "link": "", 
+        "expectedAnswer": "boutton3"
+      },      
+      {
+        "name": "Boutton 4",
+        "text": "",
+        "type": {
+            "type": "puzzle",
+            "enum": ["qr", "question", "puzzle"] 
+        },
+        "indice": "Toujours autant d'énergie ?",
+        "indiceUsed": "false",
+        "link": "", 
+        "expectedAnswer": "boutton4"
+      }
+
+    
+  ]

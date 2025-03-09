@@ -7,12 +7,13 @@ const Epreuve = require('../models/epreuves');
 const Etape = require('../models/etapes');
 const { checkBody } = require("../modules/checkBody");
 
-// // ROUTE GET scenarios listing
+/// ROUTE GET scenarios listing
 router.get("/test", function (req, res, next) {
   res.send("respond with a resource");
 });
 
-//ROUTE GET all scenarios listing :
+
+//// ROUTE GET all scenarios listing :
 router.get("/", (req, res) => {
   Scenario.find().then(data => {
     res.json(data);
@@ -20,7 +21,8 @@ router.get("/", (req, res) => {
   })
 });
 
-//ROUTE GET scenarios by name :
+
+//// ROUTE GET scenarios by name when click on play :
 router.get("/:name", (req, res) => {
   try {
     if (!checkBody(req.params, ["name"])) {
@@ -38,7 +40,8 @@ router.get("/:name", (req, res) => {
   }
 });
 
-//ROUTE GET all data session by scenario and name :
+
+//// ROUTE GET all data session by scenario and name :
 router.get("/sessionAll/:scenarioId/:participantId", async (req, res) => {
   console.log("Params reçus :", req.params);
   try {
@@ -73,7 +76,70 @@ router.get("/sessionAll/:scenarioId/:participantId", async (req, res) => {
   }
 });
 
-//ROUTE GET data descriptionEpreuve by scenario and name :
+//// ROUTE POST create session by scenario and name :
+router.post("/createSession/:scenarioId/:participantId", async (req, res) => {
+  try {
+    const { scenarioId, participantId } = req.params;
+
+    // Vérifier si la session existe déjà
+    let session = await Session.findOne({ scenarioId: scenarioId, userId: participantId })
+      .populate("currentEpreuve")
+      .populate("validatedEpreuves")
+      .populate({
+        path: "scenario",
+        populate: { path: "epreuves", model: "epreuves" },
+      });
+
+    if (session) {
+      // Si la session existe, on renvoie les infos nécessaires au front pour reprendre la partie
+      return res.json({
+        result: true,
+        message: "Reprise de la session",
+        sessionId: session._id,
+        scenarioId: session.scenario._id,
+        currentEpreuve: session.currentEpreuve,
+        validatedEpreuves: session.validatedEpreuves,
+      });
+    }
+    console.log("si une session est tourvée", session);
+    // Si aucune session n'existe, on récupère le scénario pour récupérer la première épreuve
+    const scenario = await Scenario.findById(scenarioId).populate("epreuves");
+    console.log("Scénario trouvé :", scenario);
+    if (!scenario || scenario.epreuves.length === 0) {
+      return res.status(404).json({ result: false, error: "Scénario ou épreuves non trouvées" });
+    }
+
+    // Créer une nouvelle session
+    const newSession = new Session({
+      participant: participantId,
+      startDate: Date.now(),
+      endDate: null,
+      scenario: scenarioId,
+      validatedEpreuves: [], // Aucune épreuve validée au début
+      currentEpreuve: scenario.epreuves[0], // Commence avec la première épreuve
+      status: "ongoing", // Session en cours
+      isSuccess: false,
+    });
+    console.log("Nouvelle session à créer :", newSession);
+    await newSession.save();
+
+    res.json({
+      result: true,
+      message: "Nouvelle session créée",
+      sessionId: newSession._id,
+      scenarioId: scenario._id,
+      currentEpreuve: scenario.epreuves[0],
+      validatedEpreuves: [],
+    });
+
+  } catch (error) {
+    console.log("Erreur dans la route POST /createSession", error);
+    res.status(500).json({ result: false, error: "Erreur serveur !" });
+  }
+});
+
+
+//// ROUTE GET data descriptionEpreuve by scenario and name :
 router.get("/descriptionEpreuve/:scenarioId/:participantId", async (req, res) => {
   try {
     const { scenarioId, participantId } = req.params;
@@ -102,7 +168,8 @@ router.get("/descriptionEpreuve/:scenarioId/:participantId", async (req, res) =>
   }
 });
 
-//ROUTE GET indice and goodFrequence of etapes by scenario and name :
+
+//// ROUTE GET indice and goodFrequence of etapes by scenario and name :
 router.get("/etapes/:scenarioId/:participantId", async (req, res) => {
   try {
     const { scenarioId, participantId } = req.params;
@@ -147,7 +214,8 @@ router.get("/etapes/:scenarioId/:participantId", async (req, res) => {
   }
 });
 
-//ROUTE GET etapes by scenario and name : COPIE COPIE COPIE
+
+//// ROUTE GET etapes by scenario and name : COPIE COPIE COPIE
 router.get("/validatedEpreuves/:scenarioId/:participantId", async (req, res) => {
   try {
     const { scenarioId, participantId } = req.params;
@@ -233,7 +301,7 @@ router.get("/validatedEpreuves/:scenarioId/:participantId", async (req, res) => 
 });
 
 
-// ------ROUTE GET if scenario exist and isSuccess is true : (A MODIFIER !!!!)
+//// ROUTE GET if scenario exist and isSuccess is true : (A MODIFIER !!!!)
 router.get("/isSuccess/:name", (req, res) => {
   try {
     if (!checkBody(req.params, ["name"])) {
@@ -251,7 +319,91 @@ router.get("/isSuccess/:name", (req, res) => {
 });
 
 
-//ROUTE POST update scrore by scenario and name :
+//// ROUTE PUT update scrore and validatedEpreuves by scenario and name : 
+// ?? Prévoir  le calcul de la durée de la session pour envoi à la fin du scénario ou la création d'un timer
+
+router.put('/updateScore/:scenarioId/:participantId', async (req, res) => {
+  try {
+    const { scenarioId, participantId } = req.params;
+    const { totalPoints } = req.body; // Score reçu depuis le front
+    console.log("Total des points reçu du front", totalPoints);
+    // 1️⃣ Récupérer la session avec l'épreuve actuelle
+    const session = await Session.findOne({ scenario: scenarioId, participant: participantId })
+      .populate("currentEpreuve")
+      .populate("validatedEpreuves")
+      .populate({
+        path: "scenario",
+        populate: {
+          path: "epreuves",
+          model: "epreuves",
+        },
+      });
+    console.log("Session trouvée :", session);
+    if (!session || !session.currentEpreuve) {
+      return res.status(404).json({ result: false, error: "Session ou épreuve non trouvée" });
+    }
+
+    // 2️⃣ Vérifier si l’épreuve est terminée (isSuccess: true)
+    if (session.isSuccess) {
+      // 3️⃣ Mettre à jour les points de l'épreuve
+      await Epreuve.findByIdAndUpdate(session.currentEpreuve._id, { $set: { points: totalPoints } });
+
+      // 4️⃣ Ajouter l'épreuve validée à validatedEpreuves
+      session.validatedEpreuves.push(session.currentEpreuve._id);
+      console.log("Epreuve validée ajoutée :", session.validatedEpreuves);
+      // 5️⃣ Trouver l’épreuve suivante
+      const scenario = session.scenario;
+      const indexCurrentEpreuve = scenario.epreuves.findIndex(
+        (epreuve) => epreuve._id.toString() === session.currentEpreuve._id.toString()
+      );
+
+      let nextEpreuve = null;
+      if (indexCurrentEpreuve !== -1 && indexCurrentEpreuve < scenario.epreuves.length - 1) {
+        nextEpreuve = scenario.epreuves[indexCurrentEpreuve + 1];
+      }
+
+      if (nextEpreuve) {
+        // 6️⃣ Mettre à jour la session avec la nouvelle épreuve
+        session.currentEpreuve = nextEpreuve._id;
+        session.isSuccess = false; // Reset pour la prochaine épreuve
+        await session.save();
+
+        res.json({
+          result: true,
+          message: "Score mis à jour et passage à l'épreuve suivante",
+          totalPoints,
+          nextEpreuve,
+        });
+      } else {
+        // 7️⃣ C'est la DERNIÈRE épreuve -> Marquer le scénario comme terminé pour l'utilisateur
+        const user = await User.findOne({ _id: participantId });
+
+        if (user) {
+          // Ajouter ce scénario à la liste des scénarios terminés par l'utilisateur
+          if (!user.scenarios.includes(scenarioId)) {
+            user.scenarios.push(scenarioId);
+            await user.save();
+          }
+        }
+
+        // 8️⃣ Supprimer la session car le scénario est terminé
+        await Session.deleteOne({ _id: session._id });
+
+        res.json({
+          result: true,
+          message: "Scénario terminé et ajouté à l'utilisateur",
+          totalPoints,
+          scenarioCompleted: scenarioId,
+        });
+      }
+    } else {
+      res.json({ result: false, message: "L'épreuve en cours n'est pas encore terminée" });
+    }
+  } catch (error) {
+    console.error("Erreur dans la route PUT /updateScore", error);
+    res.status(500).json({ result: false, error: "Erreur serveur !" });
+  }
+});
 
 
 module.exports = router;

@@ -1,0 +1,23 @@
+    [
+        {
+            "name": "frequence radio",
+            "difficulte": "facile",
+            "points": "300",
+            "descriptionEpreuve": "Alerte ! Ici Joachim ! Mauvaise nouvelle... La capsule a activé un champ magnétique qui brouille les communications ! J’ai essayé d’envoyer un message, mais il est totalement distordu. Vous devez retrouver la bonne fréquence pour que je puisse vous parler et vous guider !",
+            "etapeEpreuve": ["frequence 1", "frequence 2", "frequence 3"]
+        },
+        {
+            "name": "Scan QR code",
+            "difficulte": "facile",
+            "points": "300",
+            "descriptionEpreuve": "Super boulot ! Maintenant, la capsule est quelque part dans l’open-space, mais elle est toujours miniaturisée. Elle génère des anomalies gravitationnelles qu’on peut détecter avec le Scanner Quantique. Scannez les objets autour de vous pour trouver son emplacement exact !",
+            "etapeEpreuve": ["QR code 1", "QR code 2", "QR code 3"]
+        },
+        {
+            "name": "Boutton dans l'ordre",
+            "difficulte": "facile",
+            "points": "300",
+            "descriptionEpreuve": "OK, la capsule est là, mais elle est toujours miniaturisée… On doit inverser le processus avec le Réacteur de Déminiaturisation. Il faut activer les bons paramètres dans le bon ordre, sinon ça ne marchera pas.",
+            "etapeEpreuve": ["Boutton 1", "Boutton 2", "Boutton 3", "Boutton 3"]
+        }
+    ]

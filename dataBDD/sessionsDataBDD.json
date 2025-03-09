@@ -1,0 +1,28 @@
+[
+    {
+      "participant": "67c5fc2b16905edcd7e37291",
+      "startDate": "2024-03-01T10:00:00.000Z",
+      "endDate": "2024-03-01T11:30:00.000Z",
+      "scenario": "67c89b3211fe5eeab54f1ecb",
+      "validatedEpreuves": [
+        "65e6911f0a3b2a001c1a5c56",
+        "65e6912d0a3b2a001c1a5c57"
+      ],
+      "currentEpreuve": "65e6913a0a3b2a001c1a5c58",
+      "status": "completed",
+      "isSuccess": true
+    },
+    {
+        "participant": "67c867d2b6e5d1f1b3e8cce3",
+        "startDate": "2024-03-01T10:00:00.000Z",
+        "endDate": "2024-03-01T11:30:00.000Z",
+        "scenario": "67c8af30e8a286da20ae480e",
+        "validatedEpreuves": [
+          "65e6911f0a3b2a001c1a5c56",
+          "65e6912d0a3b2a001c1a5c57"
+        ],
+        "currentEpreuve": "65e6913a0a3b2a001c1a5c58",
+        "status": "completed",
+        "isSuccess": true
+      }
+  ]
