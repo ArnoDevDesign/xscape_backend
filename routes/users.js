@@ -41,20 +41,37 @@ router.post("/signup", (req, res) => {
 
 
 //// ROUTE SIGNIN : route pour connecter un utilisateur
-router.post("/signin", (req, res) => {
+router.post("/signin", async (req, res) => {
   if (!checkBody(req.body, ["email", "password"])) {
-    res.json({ result: false, error: "Missing or empty fields" });
-    return;
+    return res.json({ result: false, error: "Missing or empty fields" });
   }
+  try {
+    const user = await User.findOne({ email: req.body.email });
+    console.log("Route signin :", user);
 
-  User.findOne({ email: req.body.email }).then((data) => {
-    console.log("Route signin :", data);
-    if (data && bcrypt.compareSync(req.body.password, data.password)) {
-      res.json({ result: true, token: data.token, username: data.username, avatar: data.avatar, _id: data._id });
+    if (user && bcrypt.compareSync(req.body.password, user.password)) {
+      // Met à jour le token de l'utilisateur dans la base de données
+      const updatedUser = await User.updateOne({ email: req.body.email }, { $set: { token: uid2(32) } });
+
+      // Si l'utilisateur a bien été mis à jour, on retourne le nouveau token et les infos nécessaires
+      if (updatedUser.modifiedCount > 0) {
+        return res.json({
+          result: true,
+          token: user.token,
+          username: user.username,
+          avatar: user.avatar,
+          _id: user._id,
+        });
+      } else {
+        return res.json({ result: false, error: "Failed to update token" });
+      }
     } else {
-      res.json({ result: false, error: "User not found or wrong password" });
+      return res.json({ result: false, error: "User not found or wrong password" });
     }
-  });
+  } catch (error) {
+    console.error("Error during signin:", error);
+    return res.status(500).json({ result: false, error: "Server error" });
+  }
 });
 
 
@@ -133,7 +150,7 @@ router.put("/updateProfil", async (req, res) => {
 //// ROUTE DELETE TOKEN : route pour supprimer le token de l'utilisateur
 router.put("/deleteToken", async (req, res) => {
   try {
-    const { token } = req.body; 
+    const { token } = req.body;
     const updateResult = await User.updateOne({ token }, { $set: { token: null } });
 
     if (updateResult.modifiedCount === 0) {

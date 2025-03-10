@@ -11,6 +11,7 @@ const userSchema = mongoose.Schema({
     // phoneNumber: Number,
     avatar: String,
     scenarios: [{ type: mongoose.Schema.Types.ObjectId, ref: "Scenario" }], // Référence aux scénarios joués 
+    // durationData: {totalDuration: Number, timeSpent: Number, remainingTime: Number,} // Si timer mise en place : Durée totale, temps passé, temps restant
 });
 
 const User = mongoose.model('users', userSchema);
