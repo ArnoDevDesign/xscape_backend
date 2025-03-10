@@ -15,6 +15,7 @@ const sessionSchema = mongoose.Schema({
         enum: ["ongoing", "completed", "paused"]
     },
     isSuccess: Boolean, // Victoire ou non
+    // durationSpent: { type: Number, default: 0 }, // Si timer mise en place : Temps passé en secondes
 });
 
 const Session = mongoose.model('sessions', sessionSchema);
