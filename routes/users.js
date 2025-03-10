@@ -131,29 +131,20 @@ router.put("/updateProfil", async (req, res) => {
 
 
 //// ROUTE DELETE TOKEN : route pour supprimer le token de l'utilisateur
-router.delete("/deleteToken/:token", async (req, res) => {
+router.put("/deleteToken", async (req, res) => {
   try {
-    const { token } = req.params;
-    console.log("Token reçu :", token); // Vérifier la valeur reçue
-
-    const user = await User.findOne({ token });
-    if (!user) {
-      return res.status(404).json({ result: false, message: "Token non tourvé en BDD" });
-    }
-
-    // Supprimer uniquement le token (et non l'utilisateur)
+    const { token } = req.body; 
     const updateResult = await User.updateOne({ token }, { $set: { token: null } });
 
     if (updateResult.modifiedCount === 0) {
-      return res.json({ result: false, message: "Impossible de supprimer le token" });
+      return res.json({ result: false, message: "Token introuvable" });
     }
 
-    res.json({ result: true, message: "Token supprimé avec succès" });
+    res.json({ result: true, message: "Token supprimé" });
 
   } catch (error) {
     console.error("Erreur dans la route DELETE /deleteToken :", error);
     res.status(500).json({ result: false, message: "Erreur serveur" });
   }
 });
-
 module.exports = router;
