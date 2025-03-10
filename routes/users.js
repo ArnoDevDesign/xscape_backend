@@ -92,7 +92,7 @@ router.get("/:token", (req, res) => {
 });
 
 
-//// ROUTE PROFILE : route pour modifier le username et l'image de l'avatar via le lien en BDD qui fait référence à l'image hébergée sur cloudinary
+//// ROUTE UPDATEPROFIL : route pour modifier le username et l'image de l'avatar via le lien en BDD qui fait référence à l'image hébergée sur cloudinary
 router.put("/updateProfil", async (req, res) => {
   try {
     const { token, username, avatar } = req.body;
@@ -126,6 +126,33 @@ router.put("/updateProfil", async (req, res) => {
     }
   } catch (error) {
     res.json({ result: false, error: "Erreur interne", details: error.message });
+  }
+});
+
+
+//// ROUTE DELETE TOKEN : route pour supprimer le token de l'utilisateur
+router.delete("/deleteToken/:token", async (req, res) => {
+  try {
+    const { token } = req.params;
+    console.log("Token reçu :", token); // Vérifier la valeur reçue
+
+    const user = await User.findOne({ token });
+    if (!user) {
+      return res.status(404).json({ result: false, message: "Token non tourvé en BDD" });
+    }
+
+    // Supprimer uniquement le token (et non l'utilisateur)
+    const updateResult = await User.updateOne({ token }, { $set: { token: null } });
+
+    if (updateResult.modifiedCount === 0) {
+      return res.json({ result: false, message: "Impossible de supprimer le token" });
+    }
+
+    res.json({ result: true, message: "Token supprimé avec succès" });
+
+  } catch (error) {
+    console.error("Erreur dans la route DELETE /deleteToken :", error);
+    res.status(500).json({ result: false, message: "Erreur serveur" });
   }
 });
 
