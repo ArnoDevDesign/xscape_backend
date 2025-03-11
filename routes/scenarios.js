@@ -77,7 +77,6 @@ router.get("/sessionAll/:scenarioId/:participantId", async (req, res) => {
 });
 
 //// ROUTE POST create session by scenario and name when start game : 
-// RES.JSON A MAJ EN FONCTION DE LA DEMANDE DU FRONT !
 router.post("/createSession/:scenarioId/:participantId", async (req, res) => {
   try {
     const { scenarioId, participantId } = req.params;
@@ -106,7 +105,7 @@ router.post("/createSession/:scenarioId/:participantId", async (req, res) => {
     // console.log("si une session est tourvée", session);
     // Si aucune session n'existe, on récupère le scénario pour récupérer la première épreuve
     const scenario = await Scenario.findById(scenarioId).populate("epreuves");
-    // console.log("Scénario trouvé :", scenario);
+    console.log("Scénario trouvé :", scenario);
     if (!scenario || scenario.epreuves.length === 0) {
       return res.status(404).json({ result: false, error: "Scénario ou épreuves non trouvées" });
     }
@@ -117,11 +116,11 @@ router.post("/createSession/:scenarioId/:participantId", async (req, res) => {
       startDate: Date.now(),
       endDate: null,
       scenario: scenarioId,
-      validatedEpreuves: [], // Aucune épreuve validée au début
+      validatedEpreuves: [],
       currentEpreuve: scenario.epreuves[0], // Commence avec la première épreuve
-      status: "ongoing", // Session en cours
+      status: "ongoing",
       isSuccess: false,
-      totalPoints: 0, // Score initial à 0
+      totalPoints: 0,
     });
     // console.log("Nouvelle session à créer :", newSession);
     await newSession.save();
@@ -133,7 +132,7 @@ router.post("/createSession/:scenarioId/:participantId", async (req, res) => {
       currentEpreuve: scenario.epreuves[0],
       validatedEpreuves: [],
       // totalPoints: totalPoints,
-      numberEpreuves: session.scenario.epreuves.length,
+      numberEpreuves: scenario.epreuves.length,
     });
 
   } catch (error) {
@@ -141,6 +140,62 @@ router.post("/createSession/:scenarioId/:participantId", async (req, res) => {
     res.status(500).json({ result: false, error: "Erreur serveur !" });
   }
 });
+
+//// ROUTE UPDATE restart session by scenario and name when restart scenario :
+router.put("/updateSession/:scenarioId/:participantId", async (req, res) => {
+  try {
+    const { scenarioId, participantId } = req.params;
+    const { restart } = req.body; // Attendre un booléen dans le body
+
+    // Récupérer la session
+    const session = await Session.findOne({ scenario: scenarioId, participant: participantId }).populate("scenario");
+
+    if (!session) {
+      return res.status(404).json({ result: false, error: "Session non trouvée" });
+    }
+
+    console.log("Session trouvée :", session);
+
+    if (restart) {
+      // Réinitialiser la session
+      session.startDate = Date.now();
+      session.endDate = null;
+      session.validatedEpreuves = [];
+      session.currentEpreuve = session.scenario.epreuves[0]; // Première épreuve
+      session.status = "ongoing";
+      session.isSuccess = false;
+      session.totalPoints = 0;
+      await session.save();
+
+      res.json({ result: true, message: "Session réinitialisée avec succès" });
+    } else {
+      // Récupérer l'utilisateur
+      const user = await User.findById(participantId);
+
+      if (!user) {
+        return res.status(404).json({ result: false, error: "Utilisateur non trouvé" });
+      }
+
+      // Ajouter les points de la session à l'utilisateur
+      user.totalPoints = (Number(user.totalPoints) || 0) + (Number(session.totalPoints) || 0);
+      await user.save();
+
+      // Supprimer la session
+      await Session.deleteOne({ _id: session._id });
+
+      res.json({
+        result: true,
+        message: "Scénario terminé et score ajouté à l'utilisateur",
+        totalPointsSession: session.totalPoints,
+        totalPointsUser: user.totalPoints,
+      });
+    }
+  } catch (error) {
+    console.error("Erreur dans la route PUT /updateSession", error);
+    res.status(500).json({ result: false, error: "Erreur serveur !" });
+  }
+});
+
 
 
 //// ROUTE GET data descriptionEpreuve by scenario and name :
@@ -348,69 +403,70 @@ router.put('/validedAndScore/:scenarioId/:participantId', async (req, res) => {
   }
 });
 
+
 //// Route PUT calcul duration of scenario by participant and scenario : 
 // A MAJ ET A TESTER !
 // Voir pour Calcul du temps passé en temps réel côté client (Front-End) 
 // Voir pour la mise à jour la durée côté serveur (Back-End)
-router.put('/calculateDuration/:scenarioId/:participantId', async (req, res) => {
-  try {
-    const { scenarioId, participantId } = req.params;
+// router.put('/calculateDuration/:scenarioId/:participantId', async (req, res) => {
+//   try {
+//     const { scenarioId, participantId } = req.params;
 
-    const session = await Session.findOne({ scenario: scenarioId, participant: participantId })
-      .populate("scenario");
+//     const session = await Session.findOne({ scenario: scenarioId, participant: participantId })
+//       .populate("scenario");
 
-    if (!session) {
-      return res.status(404).json({ result: false, error: "Session non trouvée" });
-    }
+//     if (!session) {
+//       return res.status(404).json({ result: false, error: "Session non trouvée" });
+//     }
 
-    // Récupérer la durée du scénario (en minutes) à partir du schéma Scenario
-    const scenario = session.scenario;
-    const initialDuration = scenario.duree;
-    if (!initialDuration) {
-      return res.status(400).json({ result: false, error: "Durée du scénario non définie" });
-    }
+//     // Récupérer la durée du scénario (en minutes) à partir du schéma Scenario
+//     const scenario = session.scenario;
+//     const initialDuration = scenario.duree;
+//     if (!initialDuration) {
+//       return res.status(400).json({ result: false, error: "Durée du scénario non définie" });
+//     }
 
-    // Calculer la durée totale passée sur la session
-    const startDate = session.startDate;
-    const endDate = session.endDate || new Date(); // Si la session n'est pas encore terminée, utiliser l'heure actuelle
+//     // Calculer la durée totale passée sur la session
+//     const startDate = session.startDate;
+//     const endDate = session.endDate || new Date(); // Si la session n'est pas encore terminée, utiliser l'heure actuelle
 
-    // Calcul de la durée totale de la session en minutes
-    const totalDurationSpent = (new Date(endDate) - new Date(startDate)) / 60000;
+//     // Calcul de la durée totale de la session en minutes
+//     const totalDurationSpent = (new Date(endDate) - new Date(startDate)) / 60000;
 
-    // Calculer le temps restant
-    const remainingDuration = Math.max(0, initialDuration - totalDurationSpent); // Ne pas avoir de durée négative
+//     // Calculer le temps restant
+//     const remainingDuration = Math.max(0, initialDuration - totalDurationSpent); // Ne pas avoir de durée négative
 
-    // Enregistrer cette information dans le profil de l'utilisateur
-    const user = await User.findById(participantId);
-    if (!user) {
-      return res.status(404).json({ result: false, error: "Utilisateur non trouvé" });
-    }
+//     // Enregistrer cette information dans le profil de l'utilisateur
+//     const user = await User.findById(participantId);
+//     if (!user) {
+//       return res.status(404).json({ result: false, error: "Utilisateur non trouvé" });
+//     }
 
-    // Ajouter cette session avec la durée calculée
-    const durationData = {
-      totalDuration: initialDuration,  // Durée initiale du scénario
-      timeSpent: totalDurationSpent,   // Temps total passé dans la session
-      remainingTime: remainingDuration, // Temps restant
-    };
+//     // Ajouter cette session avec la durée calculée
+//     const durationData = {
+//       totalDuration: initialDuration,  // Durée initiale du scénario
+//       timeSpent: totalDurationSpent,   // Temps total passé dans la session
+//       remainingTime: remainingDuration, // Temps restant
+//     };
 
-    // Ajouter cette information à la liste des sessions terminées pour l'utilisateur
-    user.scenarios.push({ scenarioId, durationData, });
+//     // Ajouter cette information à la liste des sessions terminées pour l'utilisateur
+//     user.scenarios.push({ scenarioId, durationData, });
 
-    // Sauvegarder l'utilisateur avec les nouvelles données
-    await user.save();
+//     // Sauvegarder l'utilisateur avec les nouvelles données
+//     await user.save();
 
-    // Retourner la réponse avec la durée calculée
-    res.json({
-      result: true,
-      message: "Durée du scénario calculée avec succès",
-      durationData,
-    });
-  } catch (error) {
-    console.error("Erreur dans la route PUT /calculateDuration", error);
-    res.status(500).json({ result: false, error: "Erreur serveur !" });
-  }
-});
+//     // Retourner la réponse avec la durée calculée
+//     res.json({
+//       result: true,
+//       message: "Durée du scénario calculée avec succès",
+//       durationData,
+//     });
+//   } catch (error) {
+//     console.error("Erreur dans la route PUT /calculateDuration", error);
+//     res.status(500).json({ result: false, error: "Erreur serveur !" });
+//   }
+// });
 
 
-// createSession // validedAndScore
+// createSession // validedAndScore // updateSession
 module.exports = router;

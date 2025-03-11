@@ -45,22 +45,28 @@ router.post("/signin", async (req, res) => {
   if (!checkBody(req.body, ["email", "password"])) {
     return res.json({ result: false, error: "Missing or empty fields" });
   }
+
   try {
     const user = await User.findOne({ email: req.body.email });
-    console.log("Route signin :", user);
 
     if (user && bcrypt.compareSync(req.body.password, user.password)) {
-      // Met à jour le token de l'utilisateur dans la base de données
-      const updatedUser = await User.updateOne({ email: req.body.email }, { $set: { token: uid2(32) } });
+      // Générer un nouveau token
+      const newToken = uid2(32);
 
-      // Si l'utilisateur a bien été mis à jour, on retourne le nouveau token et les infos nécessaires
-      if (updatedUser.modifiedCount > 0) {
+      // Mettre à jour l'utilisateur et récupérer les nouvelles données
+      const updatedUser = await User.findOneAndUpdate(
+        { email: req.body.email },
+        { $set: { token: newToken } },
+        { new: true } // Retourne l'utilisateur mis à jour avec le nouveau token
+      );
+
+      if (updatedUser) {
         return res.json({
           result: true,
-          token: user.token,
-          username: user.username,
-          avatar: user.avatar,
-          _id: user._id,
+          token: updatedUser.token, // On envoie bien le nouveau token
+          username: updatedUser.username,
+          avatar: updatedUser.avatar,
+          _id: updatedUser._id,
         });
       } else {
         return res.json({ result: false, error: "Failed to update token" });
@@ -78,12 +84,12 @@ router.post("/signin", async (req, res) => {
 //// PAGE PROFILE : route pour afficher les infos de l'utilisateur
 router.get("/:token", async (req, res) => {
   try {
+    console.log("Recherche de l'utilisateur avec le token :", req.params.token);
     const user = await User.findOne({ token: req.params.token }).populate("scenarios");
     console.log("Utilisateur trouvé :", user);
     if (!user) {
       return res.json({ message: "Utilisateur non trouvé" });
     }
-
     // Vérifie que user.scenarios est bien un tableau peuplé
     const completedScenarios = user.scenarios.map((scenario) => scenario.name);
     console.log("Liste des scénarios terminés :", completedScenarios);
