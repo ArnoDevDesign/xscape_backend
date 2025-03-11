@@ -33,7 +33,7 @@ router.post("/signup", (req, res) => {
         scenarios: [],
       });
       newUser.save().then((data) => {
-        res.json({ result: true, token: data.token, _id: data._id});
+        res.json({ result: true, token: data.token, _id: data._id });
       });
     }
   })
@@ -50,8 +50,8 @@ router.post("/signin", async (req, res) => {
     console.log("Route signin :", user);
 
     if (user && bcrypt.compareSync(req.body.password, user.password)) {
-   // Met à jour le token de l'utilisateur dans la base de données
-      const updatedUser = await User.updateOne({ email: req.body.email },{ $set: { token: uid2(32) } });
+      // Met à jour le token de l'utilisateur dans la base de données
+      const updatedUser = await User.updateOne({ email: req.body.email }, { $set: { token: uid2(32) } });
 
       // Si l'utilisateur a bien été mis à jour, on retourne le nouveau token et les infos nécessaires
       if (updatedUser.modifiedCount > 0) {
@@ -150,7 +150,7 @@ router.put("/updateProfil", async (req, res) => {
 //// ROUTE DELETE TOKEN : route pour supprimer le token de l'utilisateur
 router.put("/deleteToken", async (req, res) => {
   try {
-    const { token } = req.body; 
+    const { token } = req.body;
     const updateResult = await User.updateOne({ token }, { $set: { token: null } });
 
     if (updateResult.modifiedCount === 0) {

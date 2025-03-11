@@ -77,7 +77,7 @@ router.get("/sessionAll/:scenarioId/:participantId", async (req, res) => {
 });
 
 //// ROUTE POST create session by scenario and name when start game : 
-      // RES.JSON A MAJ EN FONCTION DE LA DEMANDE DU FRONT !
+// RES.JSON A MAJ EN FONCTION DE LA DEMANDE DU FRONT !
 router.post("/createSession/:scenarioId/:participantId", async (req, res) => {
   try {
     const { scenarioId, participantId } = req.params;
@@ -103,10 +103,10 @@ router.post("/createSession/:scenarioId/:participantId", async (req, res) => {
         totalPoints: session.totalPoints,
       });
     }
-console.log("si une session est tourvée", session);
+    console.log("si une session est tourvée", session);
     // Si aucune session n'existe, on récupère le scénario pour récupérer la première épreuve
     const scenario = await Scenario.findById(scenarioId).populate("epreuves");
-console.log("Scénario trouvé :", scenario);
+    console.log("Scénario trouvé :", scenario);
     if (!scenario || scenario.epreuves.length === 0) {
       return res.status(404).json({ result: false, error: "Scénario ou épreuves non trouvées" });
     }
@@ -123,7 +123,7 @@ console.log("Scénario trouvé :", scenario);
       isSuccess: false,
       totalPoints: 0, // Score initial à 0
     });
-console.log("Nouvelle session à créer :", newSession);
+    console.log("Nouvelle session à créer :", newSession);
     await newSession.save();
 
     res.json({
@@ -192,27 +192,27 @@ router.get("/etapes/:scenarioId/:participantId", async (req, res) => {
     }
     console.log("Session et épreuve avec étapes trouvées :", session);
 
-  //recherche des valeurs des indices et expectedAnswer
-        const indices = Object.fromEntries( // méthode Object.fromEntries() permet de transformer une liste de paires de clés/valeurs en un objet
-          session.currentEpreuve.etapes.map((data, index) => 
-            [`indice${index + 1}`, data.indice])
-        );
-    
-        const expectedAnswers = Object.fromEntries(
-          session.currentEpreuve.etapes.map((data, index) => 
-            [`expectedAnswer${index + 1}`, data.expectedAnswer])
-        );
-    res.json({ 
-      indice1 : indices.indice1,
-      indice2 : indices.indice2,
-      indice3 : indices.indice3, 
-      goodFrequence1 : expectedAnswers.expectedAnswer1,
-      goodFrequence2 : expectedAnswers.expectedAnswer2,
-      goodFrequence3 : expectedAnswers.expectedAnswer3,
-      score : session.currentEpreuve.points,
+    //recherche des valeurs des indices et expectedAnswer
+    const indices = Object.fromEntries( // méthode Object.fromEntries() permet de transformer une liste de paires de clés/valeurs en un objet
+      session.currentEpreuve.etapes.map((data, index) =>
+        [`indice${index + 1}`, data.indice])
+    );
+
+    const expectedAnswers = Object.fromEntries(
+      session.currentEpreuve.etapes.map((data, index) =>
+        [`expectedAnswer${index + 1}`, data.expectedAnswer])
+    );
+    res.json({
+      indice1: indices.indice1,
+      indice2: indices.indice2,
+      indice3: indices.indice3,
+      goodFrequence1: expectedAnswers.expectedAnswer1,
+      goodFrequence2: expectedAnswers.expectedAnswer2,
+      goodFrequence3: expectedAnswers.expectedAnswer3,
+      score: session.currentEpreuve.points,
     });
 
-  console.log("points de l'épreuve", session.currentEpreuve.points)
+    console.log("points de l'épreuve", session.currentEpreuve.points)
 
   } catch (error) {
     console.log("Erreur dans la route GET /currentEpreuve", error);
@@ -222,17 +222,17 @@ router.get("/etapes/:scenarioId/:participantId", async (req, res) => {
 
 
 //// ROUTE GET if scenario exist and isSuccess is true : (A MODIFIER !!!!)
-router.get("/isSuccess/:name", (req,res) => {
-   try {
+router.get("/isSuccess/:name", (req, res) => {
+  try {
     if (!checkBody(req.params, ["name"])) {
-    res.json({result: false, error: "Pas de scenario trouvé avec ce nom !"});
-    return;
-   }
-   Scenario.findOne({name: req.params.name, isSuccess: true}) 
-   .then(data => {
-    res.json(data);
-    console.log(data);
-   });
+      res.json({ result: false, error: "Pas de scenario trouvé avec ce nom !" });
+      return;
+    }
+    Scenario.findOne({ name: req.params.name, isSuccess: true })
+      .then(data => {
+        res.json(data);
+        console.log(data);
+      });
   } catch (error) {
     console.log('route get isSuccess', error)
   }
@@ -243,7 +243,7 @@ router.get("/isSuccess/:name", (req,res) => {
 router.put('/validedAndScore/:scenarioId/:participantId', async (req, res) => {
   try {
     const { scenarioId, participantId } = req.params;
-    const { totalPoints, isSuccess } = req.body; 
+    const { totalPoints, isSuccess } = req.body;
     console.log("Total des points reçu du front", totalPoints);
 
     // Récupérer la session
@@ -337,9 +337,9 @@ router.put('/validedAndScore/:scenarioId/:participantId', async (req, res) => {
 });
 
 //// Route PUT calcul duration of scenario by participant and scenario : 
-    // A MAJ ET A TESTER !
-    // Voir pour Calcul du temps passé en temps réel côté client (Front-End) 
-    // Voir pour la mise à jour la durée côté serveur (Back-End)
+// A MAJ ET A TESTER !
+// Voir pour Calcul du temps passé en temps réel côté client (Front-End) 
+// Voir pour la mise à jour la durée côté serveur (Back-End)
 router.put('/calculateDuration/:scenarioId/:participantId', async (req, res) => {
   try {
     const { scenarioId, participantId } = req.params;
@@ -353,7 +353,7 @@ router.put('/calculateDuration/:scenarioId/:participantId', async (req, res) => 
 
     // Récupérer la durée du scénario (en minutes) à partir du schéma Scenario
     const scenario = session.scenario;
-    const initialDuration = scenario.duree; 
+    const initialDuration = scenario.duree;
     if (!initialDuration) {
       return res.status(400).json({ result: false, error: "Durée du scénario non définie" });
     }
@@ -382,7 +382,7 @@ router.put('/calculateDuration/:scenarioId/:participantId', async (req, res) => 
     };
 
     // Ajouter cette information à la liste des sessions terminées pour l'utilisateur
-    user.scenarios.push({scenarioId, durationData,});
+    user.scenarios.push({ scenarioId, durationData, });
 
     // Sauvegarder l'utilisateur avec les nouvelles données
     await user.save();
