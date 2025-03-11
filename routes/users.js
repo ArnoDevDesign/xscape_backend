@@ -45,12 +45,10 @@ router.post("/signin", async (req, res) => {
   if (!checkBody(req.body, ["email", "password"])) {
     return res.json({ result: false, error: "Missing or empty fields" });
   }
-
   try {
     const user = await User.findOne({ email: req.body.email });
 
     if (user && bcrypt.compareSync(req.body.password, user.password)) {
-      // Générer un nouveau token
       const newToken = uid2(32);
 
       // Mettre à jour l'utilisateur et récupérer les nouvelles données

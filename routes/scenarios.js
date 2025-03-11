@@ -126,13 +126,7 @@ router.post("/createSession/:scenarioId/:participantId", async (req, res) => {
     await newSession.save();
 
     res.json({
-      result: true,
-      message: "Nouvelle session créée",
-      scenarioId: scenario._id,
-      currentEpreuve: scenario.epreuves[0],
-      validatedEpreuves: [],
-      // totalPoints: totalPoints,
-      numberEpreuves: scenario.epreuves.length,
+      result: true, message: "Nouvelle session créée", scenarioId: scenario._id,
     });
 
   } catch (error) {
@@ -142,26 +136,36 @@ router.post("/createSession/:scenarioId/:participantId", async (req, res) => {
 });
 
 //// ROUTE UPDATE restart session by scenario and name when restart scenario :
+// createSession // validedAndScore // updateSession
 router.put("/updateSession/:scenarioId/:participantId", async (req, res) => {
   try {
     const { scenarioId, participantId } = req.params;
-    const { restart } = req.body; // Attendre un booléen dans le body
+    let { restart } = req.body; // Attendre un booléen dans le body
 
-    // Récupérer la session
-    const session = await Session.findOne({ scenario: scenarioId, participant: participantId }).populate("scenario");
+    // Convertir `restart` en booléen
+    restart = restart === "true" || restart === true;
+
+    // Récupérer la session et s'assurer que le scénario est bien peuplé
+    const session = await Session.findOne({ scenario: scenarioId, participant: participantId })
+      .populate({
+        path: "scenario",
+        populate: { path: "epreuves" }, // Peupler les épreuves du scénario
+      });
 
     if (!session) {
       return res.status(404).json({ result: false, error: "Session non trouvée" });
     }
 
-    console.log("Session trouvée :", session);
+    if (!session.scenario || !session.scenario.epreuves || session.scenario.epreuves.length === 0) {
+      return res.status(500).json({ result: false, error: "Le scénario ne contient aucune épreuve" });
+    }
 
     if (restart) {
       // Réinitialiser la session
       session.startDate = Date.now();
       session.endDate = null;
       session.validatedEpreuves = [];
-      session.currentEpreuve = session.scenario.epreuves[0]; // Première épreuve
+      session.currentEpreuve = session.scenario.epreuves[0]._id; // Première épreuve
       session.status = "ongoing";
       session.isSuccess = false;
       session.totalPoints = 0;
@@ -169,29 +173,18 @@ router.put("/updateSession/:scenarioId/:participantId", async (req, res) => {
 
       res.json({ result: true, message: "Session réinitialisée avec succès" });
     } else {
-      // Récupérer l'utilisateur
-      const user = await User.findById(participantId);
-
-      if (!user) {
-        return res.status(404).json({ result: false, error: "Utilisateur non trouvé" });
-      }
-
-      // Ajouter les points de la session à l'utilisateur
-      user.totalPoints = (Number(user.totalPoints) || 0) + (Number(session.totalPoints) || 0);
-      await user.save();
-
-      // Supprimer la session
-      await Session.deleteOne({ _id: session._id });
-
-      res.json({
+      // Récupérer la session en cours
+      return res.json({
         result: true,
-        message: "Scénario terminé et score ajouté à l'utilisateur",
-        totalPointsSession: session.totalPoints,
-        totalPointsUser: user.totalPoints,
+        message: "Reprise de la session",
+        validatedEpreuves: session.validatedEpreuves.length, // Nombre d'épreuves validées
+        currentEpreuve: session.currentEpreuve, // Infos de l'épreuve en cours
+        totalPoints: session.totalPoints,
+        numberEpreuves: session.scenario.epreuves.length,
       });
     }
   } catch (error) {
-    console.error("Erreur dans la route PUT /updateSession", error);
+    console.error("Erreur dans la route PUT /updateSession :", error);
     res.status(500).json({ result: false, error: "Erreur serveur !" });
   }
 });
@@ -468,5 +461,5 @@ router.put('/validedAndScore/:scenarioId/:participantId', async (req, res) => {
 // });
 
 
-// createSession // validedAndScore // updateSession
+
 module.exports = router;
