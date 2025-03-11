@@ -89,7 +89,7 @@ router.post("/createSession/:scenarioId/:participantId", async (req, res) => {
         path: "scenario",
         populate: { path: "epreuves", model: "epreuves" },
       });
-// console.log("nom du scenario", session.scenario.name);
+    // console.log("nom du scenario", session.scenario.name);
     if (session) {
       // Si la session existe, on renvoie les infos nécessaires au front pour reprendre la partie
       return res.json({
@@ -251,8 +251,8 @@ router.get("/etapes/:scenarioId/:participantId", async (req, res) => {
     // console.log(".map des étapes :", session.currentEpreuve.etapes.map((data, index) =>
     //   [`expectedText${index + 1}`, data.text]))
     // méthode Object.fromEntries() permet de transformer une liste de paires de clés/valeurs en un objet
-    
-    const indices = Object.fromEntries( 
+
+    const indices = Object.fromEntries(
       session.currentEpreuve.etapes.map((data, index) =>
         [`indice${index + 1}`, data.indice])
     );
@@ -278,7 +278,7 @@ router.get("/etapes/:scenarioId/:participantId", async (req, res) => {
       text2: expectedText.expectedText2,
       text3: expectedText.expectedText3,
       text4: expectedText.expectedText4,
-      // score: session.currentEpreuve.points,
+      score: session.currentEpreuve.points,
     });
 
     console.log("points de l'épreuve", session.currentEpreuve.points)
