@@ -98,15 +98,15 @@ router.post("/createSession/:scenarioId/:participantId", async (req, res) => {
         message: "Reprise de la session",
         sessionId: session._id,
         scenarioId: session.scenario._id,
+        validatedEpreuves: session.validatedEpreuves.length, // Liste des épreuves validées
         currentEpreuve: session.currentEpreuve, //Infos de l'épreuve en cours
-        validatedEpreuves: session.validatedEpreuves,
         totalPoints: session.totalPoints,
       });
     }
     console.log("si une session est tourvée", session);
     // Si aucune session n'existe, on récupère le scénario pour récupérer la première épreuve
     const scenario = await Scenario.findById(scenarioId).populate("epreuves");
-    console.log("Scénario trouvé :", scenario);
+    // console.log("Scénario trouvé :", scenario);
     if (!scenario || scenario.epreuves.length === 0) {
       return res.status(404).json({ result: false, error: "Scénario ou épreuves non trouvées" });
     }
