@@ -15,6 +15,10 @@ const sessionSchema = mongoose.Schema({
         enum: ["ongoing", "completed", "paused"]
     },
     isSuccess: Boolean, // Victoire ou non
+    totalPoints: {
+        type: Number,
+        default: 0,
+    }
     // durationSpent: { type: Number, default: 0 }, // Si timer mise en place : Temps passé en secondes
 });
 

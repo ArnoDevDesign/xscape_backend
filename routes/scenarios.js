@@ -98,8 +98,9 @@ router.post("/createSession/:scenarioId/:participantId", async (req, res) => {
         message: "Reprise de la session",
         sessionId: session._id,
         scenarioId: session.scenario._id,
-        currentEpreuve: session.currentEpreuve,
+        currentEpreuve: session.currentEpreuve, //Infos de l'épreuve en cours
         validatedEpreuves: session.validatedEpreuves,
+        totalPoints: session.totalPoints,
       });
     }
 console.log("si une session est tourvée", session);
@@ -120,6 +121,7 @@ console.log("Scénario trouvé :", scenario);
       currentEpreuve: scenario.epreuves[0], // Commence avec la première épreuve
       status: "ongoing", // Session en cours
       isSuccess: false,
+      totalPoints: 0, // Score initial à 0
     });
 console.log("Nouvelle session à créer :", newSession);
     await newSession.save();
@@ -131,6 +133,7 @@ console.log("Nouvelle session à créer :", newSession);
       scenarioId: scenario._id,
       currentEpreuve: scenario.epreuves[0],
       validatedEpreuves: [],
+      // totalPoints: totalPoints,
     });
 
   } catch (error) {
@@ -256,19 +259,19 @@ router.put('/validedAndScore/:scenarioId/:participantId', async (req, res) => {
       return res.status(404).json({ result: false, error: "Session ou épreuve non trouvée" });
     }
 
-    console.log("Session trouvée :", session);
+    // console.log("Session trouvée :", session);
 
     if (session) {
-      // ✅ Vérifier que totalPoints est bien un nombre et l'ajouter au score temporaire
-      session.totalPoints = (session.totalPoints || 0) + (totalPoints || 0);
+      // Vérifier que totalPoints est bien un nombre et l'ajouter au score temporaire
+      session.totalPoints = (Number(session.totalPoints) || 0) + (Number(totalPoints) || 0);
       console.log("Total des points accumulés dans la session :", session.totalPoints);
 
-      // ✅ Ajouter l'épreuve validée à validatedEpreuves
+      // Ajouter l'épreuve validée à validatedEpreuves
       session.validatedEpreuves.push(session.currentEpreuve._id);
       await session.save();
       console.log("Epreuve validée ajoutée :", session.validatedEpreuves);
 
-      // ✅ Trouver l’épreuve suivante
+      // Trouver l’épreuve suivante
       const scenario = session.scenario;
       const indexCurrentEpreuve = scenario.epreuves.findIndex(
         (epreuve) => epreuve._id.toString() === session.currentEpreuve._id.toString()
@@ -280,7 +283,7 @@ router.put('/validedAndScore/:scenarioId/:participantId', async (req, res) => {
       }
 
       if (nextEpreuve) {
-        // ✅ Mettre à jour la session avec la nouvelle épreuve
+        // Mettre à jour la session avec la nouvelle épreuve
         session.currentEpreuve = nextEpreuve._id;
         session.isSuccess = false; // Reset pour la prochaine épreuve
         await session.save();
@@ -294,19 +297,15 @@ router.put('/validedAndScore/:scenarioId/:participantId', async (req, res) => {
         });
 
       } else {
-        // ✅ C'est la DERNIÈRE épreuve -> Ajouter le score final à l'utilisateur
+        // C'est la DERNIÈRE épreuve -> Ajouter le score final à l'utilisateur
+        console.log("ID du participant reçu :", participantId);
         const user = await User.findById(participantId);
-
+        console.log("Utilisateur trouvé :", user);
         if (user) {
-          // // ✅ S'assurer que user.scenarios est bien un tableau
-          // if (!Array.isArray(user.scenarios)) {
-          //   user.scenarios = [];
-          // }
+          // Ajouter le total des points accumulés au score du joueur
+          user.totalScore = (Number(user.totalScore) || 0) + (Number(session.totalPoints) || 0);
 
-          // ✅ Ajouter le total des points accumulés au score du joueur
-          user.totalScore = (user.totalScore || 0) + session.totalPoints;
-
-          // ✅ Vérifier si le scénario est déjà enregistré et l'ajouter si besoin
+          // Vérifier si le scénario est déjà enregistré et l'ajouter si besoin
           if (!user.scenarios.some(s => s.toString() === scenarioId.toString())) {
             user.scenarios.push(scenarioId);
           }
@@ -318,7 +317,7 @@ router.put('/validedAndScore/:scenarioId/:participantId', async (req, res) => {
           return res.status(404).json({ result: false, error: "Utilisateur non trouvé" });
         }
 
-        // ✅ Supprimer la session
+        // Supprimer la session
         await Session.deleteOne({ _id: session._id });
 
         res.json({
@@ -400,5 +399,5 @@ router.put('/calculateDuration/:scenarioId/:participantId', async (req, res) => 
   }
 });
 
-
+// createSession // validedAndScore
 module.exports = router;
