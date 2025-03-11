@@ -203,7 +203,7 @@ router.get("/etapes/:scenarioId/:participantId", async (req, res) => {
     );
     const expectedAnswers = Object.fromEntries(
       session.currentEpreuve.etapes.map((data, index) =>
-        [`expectedAnswer${index + 1}`, data.expectedAnswer])
+        [`answer${index + 1}`, data.expectedAnswer])
     );
     const expectedText = Object.fromEntries(
       session.currentEpreuve.etapes.map((data, index) =>
@@ -215,10 +215,10 @@ router.get("/etapes/:scenarioId/:participantId", async (req, res) => {
       indice2: indices.indice2,
       indice3: indices.indice3,
       indice4: indices.indice4,
-      expectedAnswer1: expectedAnswers.expectedAnswer1,
-      expectedAnswer2: expectedAnswers.expectedAnswer2,
-      expectedAnswer3: expectedAnswers.expectedAnswer3,
-      expectedAnswer4: expectedAnswers.expectedAnswer4,
+      expectedAnswer1: expectedAnswers.answer1,
+      expectedAnswer2: expectedAnswers.answer2,
+      expectedAnswer3: expectedAnswers.answer3,
+      expectedAnswer4: expectedAnswers.answer4,
       text1: expectedText.expectedText1,
       text2: expectedText.expectedText2,
       text3: expectedText.expectedText3,
