@@ -269,7 +269,7 @@ router.put('/validedAndScore/:scenarioId/:participantId', async (req, res) => {
       // Ajouter l'épreuve validée à validatedEpreuves
       session.validatedEpreuves.push(session.currentEpreuve._id);
       await session.save();
-      console.log("Epreuve validée ajoutée :", session.validatedEpreuves);
+      // console.log("Epreuve validée ajoutée :", session.validatedEpreuves);
 
       // Trouver l’épreuve suivante
       const scenario = session.scenario;
@@ -287,7 +287,7 @@ router.put('/validedAndScore/:scenarioId/:participantId', async (req, res) => {
         session.currentEpreuve = nextEpreuve._id;
         session.isSuccess = false; // Reset pour la prochaine épreuve
         await session.save();
-        console.log("Epreuve suivante identifiée ", nextEpreuve);
+        // console.log("Epreuve suivante identifiée ", nextEpreuve);
 
         res.json({
           result: true,
@@ -297,13 +297,13 @@ router.put('/validedAndScore/:scenarioId/:participantId', async (req, res) => {
         });
 
       } else {
-        // C'est la DERNIÈRE épreuve -> Ajouter le score final à l'utilisateur
-        console.log("ID du participant reçu :", participantId);
+        // DERNIÈRE épreuve -> Ajouter le score final à l'utilisateur
         const user = await User.findById(participantId);
         console.log("Utilisateur trouvé :", user);
         if (user) {
           // Ajouter le total des points accumulés au score du joueur
-          user.totalScore = (Number(user.totalScore) || 0) + (Number(session.totalPoints) || 0);
+          user.totalPoints = (Number(user.totalPoints) || 0) + (Number(session.totalPoints) || 0);
+          console.log("Score final ajouté à l'utilisateur :", user.totalPoints);
 
           // Vérifier si le scénario est déjà enregistré et l'ajouter si besoin
           if (!user.scenarios.some(s => s.toString() === scenarioId.toString())) {
