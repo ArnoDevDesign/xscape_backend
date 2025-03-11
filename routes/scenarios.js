@@ -243,8 +243,8 @@ router.get("/isSuccess/:name", (req, res) => {
 router.put('/validedAndScore/:scenarioId/:participantId', async (req, res) => {
   try {
     const { scenarioId, participantId } = req.params;
-    const { totalPoints, isSuccess } = req.body;
-    console.log("Total des points reçu du front", totalPoints);
+    const { score, result } = req.body;
+    console.log("Total des points reçu du front", score);
 
     // Récupérer la session
     const session = await Session.findOne({ scenario: scenarioId, participant: participantId })
@@ -263,7 +263,7 @@ router.put('/validedAndScore/:scenarioId/:participantId', async (req, res) => {
 
     if (session) {
       // Vérifier que totalPoints est bien un nombre et l'ajouter au score temporaire
-      session.totalPoints = (Number(session.totalPoints) || 0) + (Number(totalPoints) || 0);
+      session.totalPoints = (Number(session.totalPoints) || 0) + (Number(score) || 0);
       console.log("Total des points accumulés dans la session :", session.totalPoints);
 
       // Ajouter l'épreuve validée à validatedEpreuves

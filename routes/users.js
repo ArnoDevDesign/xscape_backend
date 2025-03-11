@@ -76,36 +76,28 @@ router.post("/signin", async (req, res) => {
 
 
 //// PAGE PROFILE : route pour afficher les infos de l'utilisateur
-router.get("/:token", (req, res) => {
-  User.findOne({ token: req.params.token })
-    .then((user) => {
-      if (!user) {
-        return res.json({ message: "Utilisateur non trouvé" });
-      }
+router.get("/:token", async (req, res) => {
+  try {
+    const user = await User.findOne({ token: req.params.token }).populate("scenarios");
 
-      // Récupérer toutes les sessions terminées de cet utilisateur
-      Session.find({ participant: user._id, status: "completed" })
-        .populate("scenario")
-        .then((completedSessions) => {
-          // Extraire uniquement les titres des scénarios terminés
-          const completedScenarios = completedSessions.map((data, index) => {
-            console.log(`Index: ${index} Scenario name : ${data.scenarios.name}`);
-            return data.scenarios.name;
-          });
+    if (!user) {
+      return res.json({ message: "Utilisateur non trouvé" });
+    }
 
-          res.json({
-            email: user.email,
-            totalPoints: user.totalPoints,
-            scenarios: completedScenarios, // Liste des titres des scénarios terminés
-          });
-        })
-        .catch((error) => {
-          res.json({ message: "Erreur lors de la récupération des sessions", details: error.message });
-        });
-    })
-    .catch((error) => {
-      res.json({ message: "Erreur lors de la récupération de l'utilisateur", details: error.message });
+    // Vérifie que user.scenarios est bien un tableau peuplé
+    const completedScenarios = user.scenarios.map((scenario) => scenario.name);
+
+    res.json({
+      email: user.email,
+      totalPoints: user.totalPoints,
+      scenarios: completedScenarios, // Liste des noms des scénarios terminés
     });
+  } catch (error) {
+    res.json({
+      message: "Erreur lors de la récupération de l'utilisateur",
+      details: error.message,
+    });
+  }
 });
 
 
