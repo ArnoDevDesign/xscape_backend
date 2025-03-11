@@ -90,20 +90,20 @@ router.post("/createSession/:scenarioId/:participantId", async (req, res) => {
         path: "scenario",
         populate: { path: "epreuves", model: "epreuves" },
       });
-
+// console.log("nom du scenario", session.scenario.name);
     if (session) {
       // Si la session existe, on renvoie les infos nécessaires au front pour reprendre la partie
       return res.json({
         result: true,
         message: "Reprise de la session",
-        sessionId: session._id,
         scenarioId: session.scenario._id,
         validatedEpreuves: session.validatedEpreuves.length, // Liste des épreuves validées
         currentEpreuve: session.currentEpreuve, //Infos de l'épreuve en cours
         totalPoints: session.totalPoints,
+        numberEpreuves: session.scenario.epreuves.length,
       });
     }
-    console.log("si une session est tourvée", session);
+    // console.log("si une session est tourvée", session);
     // Si aucune session n'existe, on récupère le scénario pour récupérer la première épreuve
     const scenario = await Scenario.findById(scenarioId).populate("epreuves");
     // console.log("Scénario trouvé :", scenario);
@@ -123,17 +123,17 @@ router.post("/createSession/:scenarioId/:participantId", async (req, res) => {
       isSuccess: false,
       totalPoints: 0, // Score initial à 0
     });
-    console.log("Nouvelle session à créer :", newSession);
+    // console.log("Nouvelle session à créer :", newSession);
     await newSession.save();
 
     res.json({
       result: true,
       message: "Nouvelle session créée",
-      sessionId: newSession._id,
       scenarioId: scenario._id,
       currentEpreuve: scenario.epreuves[0],
       validatedEpreuves: [],
       // totalPoints: totalPoints,
+      numberEpreuves: session.scenario.epreuves.length,
     });
 
   } catch (error) {
@@ -192,24 +192,38 @@ router.get("/etapes/:scenarioId/:participantId", async (req, res) => {
     }
     console.log("Session et épreuve avec étapes trouvées :", session);
 
-    //recherche des valeurs des indices et expectedAnswer
-    const indices = Object.fromEntries( // méthode Object.fromEntries() permet de transformer une liste de paires de clés/valeurs en un objet
+    //recherche des valeurs des indices, expectedAnswer et text des étapes : 
+    // console.log(".map des étapes :", session.currentEpreuve.etapes.map((data, index) =>
+    //   [`expectedText${index + 1}`, data.text]))
+    // méthode Object.fromEntries() permet de transformer une liste de paires de clés/valeurs en un objet
+    
+    const indices = Object.fromEntries( 
       session.currentEpreuve.etapes.map((data, index) =>
         [`indice${index + 1}`, data.indice])
     );
-
     const expectedAnswers = Object.fromEntries(
       session.currentEpreuve.etapes.map((data, index) =>
         [`expectedAnswer${index + 1}`, data.expectedAnswer])
     );
+    const expectedText = Object.fromEntries(
+      session.currentEpreuve.etapes.map((data, index) =>
+        [`expectedText${index + 1}`, data.text])
+    );
+
     res.json({
       indice1: indices.indice1,
       indice2: indices.indice2,
       indice3: indices.indice3,
-      goodFrequence1: expectedAnswers.expectedAnswer1,
-      goodFrequence2: expectedAnswers.expectedAnswer2,
-      goodFrequence3: expectedAnswers.expectedAnswer3,
-      score: session.currentEpreuve.points,
+      indice4: indices.indice4,
+      expectedAnswer1: expectedAnswers.expectedAnswer1,
+      expectedAnswer2: expectedAnswers.expectedAnswer2,
+      expectedAnswer3: expectedAnswers.expectedAnswer3,
+      expectedAnswer4: expectedAnswers.expectedAnswer4,
+      text1: expectedText.expectedText1,
+      text2: expectedText.expectedText2,
+      text3: expectedText.expectedText3,
+      text4: expectedText.expectedText4,
+      // score: session.currentEpreuve.points,
     });
 
     console.log("points de l'épreuve", session.currentEpreuve.points)
@@ -219,7 +233,6 @@ router.get("/etapes/:scenarioId/:participantId", async (req, res) => {
     res.json({ result: false, error: "Erreur serveur !" });
   }
 });
-
 
 //// ROUTE GET if scenario exist and isSuccess is true : (A MODIFIER !!!!)
 router.get("/isSuccess/:name", (req, res) => {
@@ -309,9 +322,8 @@ router.put('/validedAndScore/:scenarioId/:participantId', async (req, res) => {
           if (!user.scenarios.some(s => s.toString() === scenarioId.toString())) {
             user.scenarios.push(scenarioId);
           }
-
           await user.save();
-          console.log("Score final ajouté à l'utilisateur :", user.totalScore);
+
         } else {
           console.log("Utilisateur non trouvé, impossible d'ajouter le score.");
           return res.status(404).json({ result: false, error: "Utilisateur non trouvé" });
@@ -323,8 +335,8 @@ router.put('/validedAndScore/:scenarioId/:participantId', async (req, res) => {
         res.json({
           result: true,
           message: "Scénario terminé et score ajouté à l'utilisateur",
-          totalPoints: user.totalScore,
-          scenarioCompleted: scenarioId,
+          totalPointsSession: session.totalPoints,
+          totalPointsUser: user.totalPoints,
         });
       }
     } else {

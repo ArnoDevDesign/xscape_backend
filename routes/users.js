@@ -1,7 +1,7 @@
 var express = require("express");
 var router = express.Router();
 const User = require("../models/users");
-const Session = require("../models/sessions");
+const Scenario = require("../models/scenarios");
 const { checkBody } = require("../modules/checkBody");
 const uid2 = require("uid2");
 const bcrypt = require("bcrypt");
@@ -79,18 +79,19 @@ router.post("/signin", async (req, res) => {
 router.get("/:token", async (req, res) => {
   try {
     const user = await User.findOne({ token: req.params.token }).populate("scenarios");
-
+    console.log("Utilisateur trouvé :", user);
     if (!user) {
       return res.json({ message: "Utilisateur non trouvé" });
     }
 
     // Vérifie que user.scenarios est bien un tableau peuplé
     const completedScenarios = user.scenarios.map((scenario) => scenario.name);
+    console.log("Liste des scénarios terminés :", completedScenarios);
 
     res.json({
       email: user.email,
       totalPoints: user.totalPoints,
-      scenarios: completedScenarios, // Liste des noms des scénarios terminés
+      scenarios: completedScenarios, 
     });
   } catch (error) {
     res.json({

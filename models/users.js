@@ -10,7 +10,7 @@ const userSchema = mongoose.Schema({
     totalPoints: Number,
     // phoneNumber: Number,
     avatar: String,
-    scenarios: [{ type: mongoose.Schema.Types.ObjectId, ref: "Scenario" }], // Référence aux scénarios joués 
+    scenarios: [{ type: mongoose.Schema.Types.ObjectId, ref: "scenarios" }], // Référence aux scénarios joués 
     // durationData: {totalDuration: Number, timeSpent: Number, remainingTime: Number,} // Si timer mise en place : Durée totale, temps passé, temps restant
 });
 
