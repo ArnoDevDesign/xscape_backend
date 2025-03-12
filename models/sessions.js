@@ -18,8 +18,11 @@ const sessionSchema = mongoose.Schema({
     totalPoints: {
         type: Number,
         default: 0,
-    }
-    // durationSpent: { type: Number, default: 0 }, // Si timer mise en place : Temps passé en secondes
+    },
+    durationSpent: {
+        type: Number,
+        default: 0
+    }, // Si timer mise en place : Temps passé en secondes
 });
 
 const Session = mongoose.model('sessions', sessionSchema);
