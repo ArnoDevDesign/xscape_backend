@@ -76,6 +76,7 @@ router.get("/sessionAll/:scenarioId/:participantId", async (req, res) => {
   }
 });
 
+
 //// ROUTE POST create session by scenario and name when start game : 
 router.post("/createSession/:scenarioId/:participantId", async (req, res) => {
   try {
@@ -96,7 +97,7 @@ router.post("/createSession/:scenarioId/:participantId", async (req, res) => {
 
     if (session) {
       if (restart) {
-        // 🔄 Réinitialisation de la session
+        // Réinitialisation de la session
         session.startDate = Date.now();
         session.endDate = null;
         session.validatedEpreuves = [];
@@ -108,7 +109,7 @@ router.post("/createSession/:scenarioId/:participantId", async (req, res) => {
 
         return res.json({ result: true, message: "Session réinitialisée avec succès" });
       } else {
-        // 🔄 Reprise de la session existante
+        // Reprise de la session existante
         return res.json({
           result: true,
           message: "Reprise de la session",
@@ -149,8 +150,6 @@ router.post("/createSession/:scenarioId/:participantId", async (req, res) => {
     res.status(500).json({ result: false, error: "Erreur serveur !" });
   }
 });
-
-
 
 
 //// ROUTE GET data descriptionEpreuve by scenario and name :
@@ -243,6 +242,7 @@ router.get("/etapes/:scenarioId/:participantId", async (req, res) => {
     res.json({ result: false, error: "Erreur serveur !" });
   }
 });
+
 
 //// ROUTE GET if scenario exist and isSuccess is true : (A MODIFIER !!!!)
 router.get("/isSuccess/:name", (req, res) => {
@@ -359,7 +359,7 @@ router.put('/validedAndScore/:scenarioId/:participantId', async (req, res) => {
 });
 
 
-//// Route PUT calcul duration of scenario by participant and scenario : 
+//// A MAJ Route PUT calcul duration of scenario by participant and scenario : 
 // calculer la durée passée en fonction des addition des durées des épreuves validées
 // calculer le temps restant en fonction de la durée max du scenario - durée passée
 // Récupérer la session correspondante
@@ -371,77 +371,73 @@ router.put('/validedAndScore/:scenarioId/:participantId', async (req, res) => {
 // const dayjs = require("dayjs"); // Importer DayJS pour gérer les dates
 // const duration = require("dayjs/plugin/duration");
 // dayjs.extend(duration);
+// router.get("/sessionTime/:scenarioId/:participantId", async (req, res) => {
+//   try {
+//     const { scenarioId, participantId } = req.params;
 
-router.get("/sessionTime/:scenarioId/:participantId", async (req, res) => {
-  try {
-    const { scenarioId, participantId } = req.params;
+//     // Récupérer la session et peupler les épreuves validées et le scénario
+//     const session = await Session.findOne({ scenario: scenarioId, participant: participantId })
+//       .populate("validatedEpreuves") // Récupère toutes les épreuves validées
+//       .populate("scenario");
 
-    // Récupérer la session et peupler les épreuves validées et le scénario
-    const session = await Session.findOne({ scenario: scenarioId, participant: participantId })
-      .populate("validatedEpreuves") // Récupère toutes les épreuves validées
-      .populate("scenario");
+//     if (!session) {
+//       return res.status(404).json({ result: false, error: "Session non trouvée" });
+//     }
 
-    if (!session) {
-      return res.status(404).json({ result: false, error: "Session non trouvée" });
-    }
+//     if (!session.scenario || !session.scenario.epreuves) {
+//       return res.status(500).json({ result: false, error: "Le scénario ne contient aucune épreuve" });
+//     }
 
-    if (!session.scenario || !session.scenario.epreuves) {
-      return res.status(500).json({ result: false, error: "Le scénario ne contient aucune épreuve" });
-    }
+//     // Récupérer la durée maximale autorisée pour le scénario
+//     const maxDuration = session.scenario.maxDuration || 0; // En minutes
 
-    // Récupérer la durée maximale autorisée pour le scénario
-    const maxDuration = session.scenario.maxDuration || 0; // En minutes
+//     // Calculer la durée totale passée en additionnant les durées des épreuves validées
+//     let totalElapsedMinutes = session.validatedEpreuves.reduce((total, epreuve) => {
+//       return total + (epreuve.duration || 0); // Chaque épreuve a une durée
+//     }, 0);
 
-    // Calculer la durée totale passée en additionnant les durées des épreuves validées
-    let totalElapsedMinutes = session.validatedEpreuves.reduce((total, epreuve) => {
-      return total + (epreuve.duration || 0); // Chaque épreuve a une durée
-    }, 0);
+//     // Calculer la durée de la session en cours
+//     let sessionStartTime = dayjs(session.startDate);
+//     let now = dayjs();
+//     let currentElapsed = now.diff(sessionStartTime, "minute"); // Minutes écoulées depuis le début de la session
 
-    // Calculer la durée de la session en cours
-    let sessionStartTime = dayjs(session.startDate);
-    let now = dayjs();
-    let currentElapsed = now.diff(sessionStartTime, "minute"); // Minutes écoulées depuis le début de la session
+//     // Si l'utilisateur a fait une pause, il faut soustraire la durée de la pause
+//     if (session.pauseStart) {
+//       let pauseStartTime = dayjs(session.pauseStart);
+//       let pauseDuration = now.diff(pauseStartTime, "minute"); // Durée de la pause
+//       currentElapsed -= pauseDuration;
+//     }
 
-    // Si l'utilisateur a fait une pause, il faut soustraire la durée de la pause
-    if (session.pauseStart) {
-      let pauseStartTime = dayjs(session.pauseStart);
-      let pauseDuration = now.diff(pauseStartTime, "minute"); // Durée de la pause
-      currentElapsed -= pauseDuration;
-    }
+//     // Ajouter le temps écoulé en cours de session au total des épreuves validées
+//     totalElapsedMinutes += currentElapsed;
 
-    // Ajouter le temps écoulé en cours de session au total des épreuves validées
-    totalElapsedMinutes += currentElapsed;
+//     // Calculer le temps restant
+//     let remainingTime = maxDuration - totalElapsedMinutes;
+//     remainingTime = remainingTime < 0 ? 0 : remainingTime; // Si le temps restant est négatif, mettre 0
 
-    // Calculer le temps restant
-    let remainingTime = maxDuration - totalElapsedMinutes;
-    remainingTime = remainingTime < 0 ? 0 : remainingTime; // Si le temps restant est négatif, mettre 0
+//     // Sauvegarder les données de la session dans le profil utilisateur
+//     const user = await User.findById(participantId);
+//     if (user) {
+//       user.lastSessionDuration = totalElapsedMinutes; // Enregistrer la durée passée
+//       await user.save();
+//     }
 
-    // Sauvegarder les données de la session dans le profil utilisateur
-    const user = await User.findById(participantId);
-    if (user) {
-      user.lastSessionDuration = totalElapsedMinutes; // Enregistrer la durée passée
-      await user.save();
-    }
+//     // Retourner les résultats
+//     res.json({
+//       result: true,
+//       message: "Durée de session calculée",
+//       totalElapsedMinutes, // Durée totale écoulée
+//       remainingTime, // Temps restant
+//       maxDuration, // Durée max du scénario
+//       sessionStartTime: session.startDate, // Heure de début de la session
+//       isPaused: !!session.pauseStart, // Vérifier si la session est en pause
+//     });
 
-    // Retourner les résultats
-    res.json({
-      result: true,
-      message: "Durée de session calculée",
-      totalElapsedMinutes, // Durée totale écoulée
-      remainingTime, // Temps restant
-      maxDuration, // Durée max du scénario
-      sessionStartTime: session.startDate, // Heure de début de la session
-      isPaused: !!session.pauseStart, // Vérifier si la session est en pause
-    });
-
-  } catch (error) {
-    console.error("Erreur dans la route GET /sessionTime :", error);
-    res.status(500).json({ result: false, error: "Erreur serveur !" });
-  }
-});
-
-
-
+//   } catch (error) {
+//     console.error("Erreur dans la route GET /sessionTime :", error);
+//     res.status(500).json({ result: false, error: "Erreur serveur !" });
+//   }
+// });
 
 
 module.exports = router;
