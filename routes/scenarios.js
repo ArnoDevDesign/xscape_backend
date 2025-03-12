@@ -398,9 +398,15 @@ router.put('/validedAndScore/:scenarioId/:participantId', async (req, res) => {
 
 
 //// Route PUT calcul duration of scenario by participant and scenario : 
-// A MAJ ET A TESTER !
-// Voir pour Calcul du temps passé en temps réel côté client (Front-End) 
 // Voir pour la mise à jour la durée côté serveur (Back-End)
+// Voir pour Calcul du temps passé en temps réel côté client (Front-End) 
+
+// reçu du front : date de début  + durée max du scenario
+// calculer la durée passée en fonction des addition des durées des épreuves validées
+// calculer le temps restant en fonction de la durée max du scenario - durée passée
+// sauvegarder les données de la session dans le profil de l'utilisateur
+// retourner la durée calculée
+//
 // router.put('/calculateDuration/:scenarioId/:participantId', async (req, res) => {
 //   try {
 //     const { scenarioId, participantId } = req.params;
